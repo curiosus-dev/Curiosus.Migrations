@@ -4,16 +4,14 @@
         <Title>Curiosus.Migrations is a migration framework that uses SQL scripts and code migration to alter your database schema or seed a data.</Title>
         <Description>Without migrations you need to create a lots of sql scripts that have to be run manually by every developer involved. Migrations solve the problem of evolving a database schema for multiple databases (for example, the developer's local database, the test database and the production database).</Description>
         <Summary>Without migrations you need to create a lots of sql scripts that have to be run manually by every developer involved. Migrations solve the problem of evolving a database schema for multiple databases (for example, the developer's local database, the test database and the production database).</Summary>
-        <PackageTags>migrations; migration; migrator; versioning; migration-tool; .net-core; .netstandard; database; siisltd; curiosus</PackageTags>
+        <PackageTags>migrations; migration; migrator; versioning; migration-tool; .net-core; .netstandard; database; curiosus</PackageTags>
         <Language>English</Language>
 
         <PackageVersion>5.0.0</PackageVersion>
         <AssemblyVersion>1.0.0</AssemblyVersion>
         <FileVersion>1.0.0</FileVersion>
         
-        <Authors>Maxim Markelow (@markeli), Kirill Lutsenko, Andrei Vinogradov (@anri-vin)</Authors>
-        <Company>SIIS Ltd</Company>
-        <Copyright>SIIS Ltd, 2026</Copyright>
+        <Authors>$(CuriosusAuthors), Kirill Lutsenko, Andrei Vinogradov (@anri-vin)</Authors>
 
         <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -22,7 +20,6 @@
         <RepositoryType>git</RepositoryType>
         <RepositoryUrl>https://github.com/curiosus-dev/Curiosus.Migrations</RepositoryUrl>
         <PackageReleaseNotes>https://github.com/curiosus-dev/Curiosus.Migrations/tree/master/src/Curiosus.Migrations/CHANGELOG.md</PackageReleaseNotes>
-        <PackageIcon>siisltd.png</PackageIcon>
         
         <LangVersion>11</LangVersion>
         <Nullable>enable</Nullable>
@@ -30,10 +27,6 @@
         <TargetFrameworks>net10.0;net9.0;net8.0;net7.0;net6.0;netcoreapp3.1;netstandard2.0;netstandard2.1</TargetFrameworks>
     </PropertyGroup>
 
-    <ItemGroup>
-        <None Include="..\..\siisltd.png" Pack="true" PackagePath="\" />
-    </ItemGroup>
-    
     <ItemGroup>
       <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.3" />
       <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.3" />
