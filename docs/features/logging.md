@@ -2,7 +2,7 @@
 
 ## General Logging
 
-`Curiosity.Migrations` provides logging capabilities to monitor the migration process. You can specify a logger that will track all migration events, including database creation, table creation, migration application, and any errors that occur during the process.
+`Curiosus.Migrations` provides logging capabilities to monitor the migration process. You can specify a logger that will track all migration events, including database creation, table creation, migration application, and any errors that occur during the process.
 
 To enable general logging:
 
@@ -29,7 +29,7 @@ The general logger tracks major events like:
 
 ## SQL Query Logging
 
-Curiosity.Migrations also provides a separate logging mechanism specifically for SQL queries executed during migrations. This allows you to track all SQL statements executed against your database.
+Curiosus.Migrations also provides a separate logging mechanism specifically for SQL queries executed during migrations. This allows you to track all SQL statements executed against your database.
 
 ```csharp
 using Microsoft.Extensions.Logging;

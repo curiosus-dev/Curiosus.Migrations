@@ -12,13 +12,13 @@ In script migrations, transactions are managed using placeholders within the SQL
 
 To manage transactions in script migrations:
 
-- **Enable Transactions**: Use the placeholder `-- CURIOSITY: TRANSACTION = ON` within your SQL script to enable transactions.
-- **Disable Transactions**: Use the placeholder `-- CURIOSITY: TRANSACTION = OFF` to disable transactions.
+- **Enable Transactions**: Use the placeholder `-- CURIOSUS: TRANSACTION = ON` within your SQL script to enable transactions.
+- **Disable Transactions**: Use the placeholder `-- CURIOSUS: TRANSACTION = OFF` to disable transactions.
 
 Example of managing transactions in a script migration:
 
 ```sql
--- CURIOSITY: TRANSACTION = OFF
+-- CURIOSUS: TRANSACTION = OFF
 -- Your SQL script here
 ```
 

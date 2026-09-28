@@ -1,13 +1,13 @@
-site_name: Curiosity.Migrations Documentation
+site_name: Curiosus.Migrations Documentation
 site_url: https://curiosity-migrations.readthedocs.io
-site_description: Curiosity.Migrations - Database migration framework for .NET and .NET Core
+site_description: Curiosus.Migrations - Database migration framework for .NET and .NET Core
 site_author: SIIS Ltd | Markeli
 copyright: <a href="https://survey-studio.com">SIIS Ltd | Markeli</a> © 2025
 
 nav:
   - 'Intro': index.md
   - 'Quick Start': quickstart.md
-  - 'The Philosophy Behind Curiosity.Migrations': philosophy.md
+  - 'The Philosophy Behind Curiosus.Migrations': philosophy.md
   - 'Basics': basics.md
   - 'Supported Databaes': supported_databases.md
   - 'Features':
@@ -27,8 +27,8 @@ nav:
     - 'Downgrade': features/downgrade.md
     - 'Dependencies': features/dependencies.md
   - 'Changelogs':
-    - 'Curiosity.Migration': changelog/curiosity.migration.md
-    - 'Curiosity.Migration.PostgreSQL': changelog/curiosity.migration.postgres.md
+    - 'Curiosus.Migration': changelog/curiosity.migration.md
+    - 'Curiosus.Migration.PostgreSQL': changelog/curiosity.migration.postgres.md
 
 theme:
   name: material

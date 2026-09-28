@@ -1,12 +1,16 @@
-# Curiosity.Migrations [![Build Status](https://github.com/siisltd/Curiosity.Migrations/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/siisltd/Curiosity.Migrations/actions/workflows/build.yml) [![License](https://img.shields.io/github/license/siisltd/curiosity.migrations.svg)](https://github.com/siisltd/Curiosity.Migrations/blob/master/LICENSE) [![NuGet Downloads](https://img.shields.io/nuget/dt/Curiosity.Migrations)](https://www.nuget.org/packages/Curiosity.Migrations) [![Documentation Status](https://readthedocs.org/projects/curiosity-migrations/badge/?version=latest)](https://curiosity-migrations.readthedocs.io/)
+# Curiosus.Migrations [![Build Status](https://github.com/curiosus-dev/Curiosus.Migrations/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/curiosus-dev/Curiosus.Migrations/actions/workflows/build.yml) [![License](https://img.shields.io/github/license/siisltd/curiosity.migrations.svg)](https://github.com/curiosus-dev/Curiosus.Migrations/blob/master/LICENSE) [![NuGet Downloads](https://img.shields.io/nuget/dt/Curiosus.Migrations)](https://www.nuget.org/packages/Curiosus.Migrations) [![Documentation Status](https://readthedocs.org/projects/curiosity-migrations/badge/?version=latest)](https://curiosity-migrations.readthedocs.io/)
+
+> **Renamed:** formerly `Curiosity.Migrations*` by SIIS Ltd. Since 5.0.0 the packages are published as `Curiosus.Migrations*`
+> by [curiosus-dev](https://www.nuget.org/profiles/curiosus-dev). To migrate, replace `Curiosity` with `Curiosus` in package references and code.
+> `-- CURIOSITY:` directives in SQL scripts keep working.
 
 ## Introduction
 
-Curiosity.Migrations is a powerful, flexible database migration framework for .NET and .NET Core applications that gives you precise control over how your database evolves. It combines the performance and control of raw SQL with the flexibility of C# code migrations, all wrapped in a robust, enterprise-ready migration system.
+Curiosus.Migrations is a powerful, flexible database migration framework for .NET and .NET Core applications that gives you precise control over how your database evolves. It combines the performance and control of raw SQL with the flexibility of C# code migrations, all wrapped in a robust, enterprise-ready migration system.
 
-Unlike ORM-specific migration tools, Curiosity.Migrations is database-focused and designed for scenarios where you need fine-grained control over migration execution, especially for large production databases where performance and safety are critical.
+Unlike ORM-specific migration tools, Curiosus.Migrations is database-focused and designed for scenarios where you need fine-grained control over migration execution, especially for large production databases where performance and safety are critical.
 
-## Why Use Curiosity.Migrations?
+## Why Use Curiosus.Migrations?
 
 <table>
   <tr>
@@ -75,12 +79,12 @@ Unlike ORM-specific migration tools, Curiosity.Migrations is database-focused an
 
 ```bash
 # Install core package
-dotnet add package Curiosity.Migrations
+dotnet add package Curiosus.Migrations
 
 # Install database provider (PostgreSQL or SQL Server)
-dotnet add package Curiosity.Migrations.PostgreSQL
+dotnet add package Curiosus.Migrations.PostgreSQL
 # or
-dotnet add package Curiosity.Migrations.SqlServer
+dotnet add package Curiosus.Migrations.SqlServer
 ```
 
 ### Basic Setup
@@ -112,12 +116,12 @@ Get started quickly with the [**Quick Start Guide**](https://curiosity-migration
   <tbody>
     <tr>
       <td align="center" valign="middle">
-        <img src="https://raw.githubusercontent.com/siisltd/Curiosity.Migrations/refs/heads/master/docs/images/postgresql.png" width="200">
+        <img src="https://raw.githubusercontent.com/siisltd/Curiosus.Migrations/refs/heads/master/docs/images/postgresql.png" width="200">
         <br>
         <b>PostgreSQL</b>
       </td>
       <td align="center" valign="middle">
-        <img src="https://raw.githubusercontent.com/siisltd/Curiosity.Migrations/refs/heads/master/docs/images/sqlserver.svg" width="200">
+        <img src="https://raw.githubusercontent.com/siisltd/Curiosus.Migrations/refs/heads/master/docs/images/sqlserver.svg" width="200">
         <br>
         <b>SQL Server</b>
       </td>
@@ -133,7 +137,7 @@ Support for additional databases can be added through contributions.
   <thead>
     <tr>
       <th>Feature</th>
-      <th>Curiosity.Migrations</th>
+      <th>Curiosus.Migrations</th>
       <th>EF Core Migrations</th>
       <th>FluentMigrator</th>
       <th>DbUp</th>
@@ -192,22 +196,22 @@ Support for additional databases can be added through contributions.
   </tbody>
 </table>
 
-For more detailed comparisons, see [The Philosophy Behind Curiosity.Migrations](https://curiosity-migrations.readthedocs.io/en/latest/philosophy/).
+For more detailed comparisons, see [The Philosophy Behind Curiosus.Migrations](https://curiosity-migrations.readthedocs.io/en/latest/philosophy/).
 
 ## Available Packages
 
 | Package | Version | Downloads |
 |---------|---------|-----------|
-| Curiosity.Migrations | [![NuGet](https://img.shields.io/nuget/v/Curiosity.Migrations.svg)](https://www.nuget.org/packages/Curiosity.Migrations/) | [![NuGet](https://img.shields.io/nuget/dt/Curiosity.Migrations)](https://www.nuget.org/packages/Curiosity.Migrations) |
-| Curiosity.Migrations.PostgreSQL | [![NuGet](https://img.shields.io/nuget/v/Curiosity.Migrations.PostgreSQL.svg)](https://www.nuget.org/packages/Curiosity.Migrations.PostgreSQL/) | [![NuGet](https://img.shields.io/nuget/dt/Curiosity.Migrations.PostgreSQL)](https://www.nuget.org/packages/Curiosity.Migrations.PostgreSQL) |
-| Curiosity.Migrations.SqlServer | [![NuGet](https://img.shields.io/nuget/v/Curiosity.Migrations.SqlServer.svg)](https://www.nuget.org/packages/Curiosity.Migrations.SqlServer/) | [![NuGet](https://img.shields.io/nuget/dt/Curiosity.Migrations.SqlServer)](https://www.nuget.org/packages/Curiosity.Migrations.SqlServer) |
-| Curiosity.Migrations.Utils | [![NuGet](https://img.shields.io/nuget/v/Curiosity.Migrations.Utils.svg)](https://www.nuget.org/packages/Curiosity.Migrations.Utils/) | [![NuGet](https://img.shields.io/nuget/dt/Curiosity.Migrations.Utils)](https://www.nuget.org/packages/Curiosity.Migrations.Utils) |
+| Curiosus.Migrations | [![NuGet](https://img.shields.io/nuget/v/Curiosus.Migrations.svg)](https://www.nuget.org/packages/Curiosus.Migrations/) | [![NuGet](https://img.shields.io/nuget/dt/Curiosus.Migrations)](https://www.nuget.org/packages/Curiosus.Migrations) |
+| Curiosus.Migrations.PostgreSQL | [![NuGet](https://img.shields.io/nuget/v/Curiosus.Migrations.PostgreSQL.svg)](https://www.nuget.org/packages/Curiosus.Migrations.PostgreSQL/) | [![NuGet](https://img.shields.io/nuget/dt/Curiosus.Migrations.PostgreSQL)](https://www.nuget.org/packages/Curiosus.Migrations.PostgreSQL) |
+| Curiosus.Migrations.SqlServer | [![NuGet](https://img.shields.io/nuget/v/Curiosus.Migrations.SqlServer.svg)](https://www.nuget.org/packages/Curiosus.Migrations.SqlServer/) | [![NuGet](https://img.shields.io/nuget/dt/Curiosus.Migrations.SqlServer)](https://www.nuget.org/packages/Curiosus.Migrations.SqlServer) |
+| Curiosus.Migrations.Utils | [![NuGet](https://img.shields.io/nuget/v/Curiosus.Migrations.Utils.svg)](https://www.nuget.org/packages/Curiosus.Migrations.Utils/) | [![NuGet](https://img.shields.io/nuget/dt/Curiosus.Migrations.Utils)](https://www.nuget.org/packages/Curiosus.Migrations.Utils) |
 
 ## Community and Support
 
-* [GitHub Issues](https://github.com/siisltd/Curiosity.Migrations/issues) - Report bugs or request features
-* [GitHub Discussions](https://github.com/siisltd/Curiosity.Migrations/discussions) - Ask questions and discuss ideas
+* [GitHub Issues](https://github.com/curiosus-dev/Curiosus.Migrations/issues) - Report bugs or request features
+* [GitHub Discussions](https://github.com/curiosus-dev/Curiosus.Migrations/discussions) - Ask questions and discuss ideas
 
 ## License
 
-Curiosity.Migrations is licensed under the [MIT License](https://github.com/siisltd/Curiosity.Migrations/blob/master/LICENSE).
+Curiosus.Migrations is licensed under the [MIT License](https://github.com/curiosus-dev/Curiosus.Migrations/blob/master/LICENSE).

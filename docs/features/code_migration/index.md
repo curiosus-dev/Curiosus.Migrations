@@ -73,7 +73,7 @@ Here's a basic example of implementing a code migration:
 using System.Data.Common;
 using System.Threading;
 using System.Threading.Tasks;
-using Curiosity.Migrations;
+using Curiosus.Migrations;
 
 public class AddUsersTableMigration : CodeMigration
 {

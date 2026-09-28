@@ -1,6 +1,6 @@
 # Variables and variable substitution
 
-`Curiosity.Migrations` supports basic variable substitution.
+`Curiosus.Migrations` supports basic variable substitution.
  
 Variables in migrations provide several important benefits:
 

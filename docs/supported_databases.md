@@ -4,10 +4,10 @@
   <tbody>
     <tr>
       <td align="center" valign="middle">
-          <img src="https://raw.githubusercontent.com/siisltd/Curiosity.Migrations/refs/heads/master/docs/images/postgresql.png" width="200">
+          <img src="https://raw.githubusercontent.com/siisltd/Curiosus.Migrations/refs/heads/master/docs/images/postgresql.png" width="200">
       </td>
       <td align="center" valign="middle">
-          <img src="https://raw.githubusercontent.com/siisltd/Curiosity.Migrations/refs/heads/master/docs/images/sqlserver.svg" width="200">
+          <img src="https://raw.githubusercontent.com/siisltd/Curiosus.Migrations/refs/heads/master/docs/images/sqlserver.svg" width="200">
           <br>
           <b>SQL Server</b>
       </td>
@@ -22,7 +22,7 @@ If you don't find a desired database, you can contribute and add support by your
 ### Installation
 
 ```bash
-dotnet add package Curiosity.Migrations.PostgreSQL
+dotnet add package Curiosus.Migrations.PostgreSQL
 ```
 
 ### Configuration
@@ -56,7 +56,7 @@ var migrationEngine = builder.Build();
 ### Installation
 
 ```bash
-dotnet add package Curiosity.Migrations.SqlServer
+dotnet add package Curiosus.Migrations.SqlServer
 ```
 
 ### Configuration

@@ -2,7 +2,7 @@
 
 ## Introduction
 
-`Curiosity.Migrations` is a flexible database migration framework for .NET applications that provides precise control over database schema and data changes. This quick start guide will help you get up and running with the basic functionality in just a few minutes.
+`Curiosus.Migrations` is a flexible database migration framework for .NET applications that provides precise control over database schema and data changes. This quick start guide will help you get up and running with the basic functionality in just a few minutes.
 
 By the end of this guide, you'll know how to:
 - Install the necessary packages
@@ -19,13 +19,13 @@ First, install the core package and the provider for your database system:
 
 ```bash
 # Core package (required)
-dotnet add package Curiosity.Migrations
+dotnet add package Curiosus.Migrations
 
 # Database-specific package (choose one)
-dotnet add package Curiosity.Migrations.PostgreSQL
+dotnet add package Curiosus.Migrations.PostgreSQL
 # Future packages will include:
-# dotnet add package Curiosity.Migrations.SqlServer
-# dotnet add package Curiosity.Migrations.MySQL
+# dotnet add package Curiosus.Migrations.SqlServer
+# dotnet add package Curiosus.Migrations.MySQL
 ```
 
 ### 2. Create Migration Directory Structure
@@ -75,7 +75,7 @@ ALTER TABLE Users ADD CONSTRAINT uq_users_email UNIQUE (Email);
 Create C# classes that inherit from `CodeMigration`. Here's an example:
 
 ```csharp
-using Curiosity.Migrations;
+using Curiosus.Migrations;
 using System.Data.Common;
 using System.Threading;
 using System.Threading.Tasks;
@@ -119,7 +119,7 @@ namespace YourProject.Migrations
 Here's how to configure the migration engine and run migrations:
 
 ```csharp
-using Curiosity.Migrations;
+using Curiosus.Migrations;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Reflection;
@@ -321,7 +321,7 @@ public class AddEmailMigration : CodeMigration, IDowngradeMigration
 
 ## Next Steps
 
-Now that you've got the basics of `Curiosity.Migrations`, check out these resources for more advanced usage:
+Now that you've got the basics of `Curiosus.Migrations`, check out these resources for more advanced usage:
 
 - [Migration Concepts](./basics.md) - Understanding core concepts
 - [Script Migrations](./features/script_migration/index.md) - Detailed information on SQL migrations
@@ -342,12 +342,12 @@ MyApp/
 │   └── 2.0.sql                # Add columns or relationships
 ├── CodeMigrations/            # Code migrations
 │   └── AddProfileDataMigration.cs  # C# migration class
-└── MyApp.csproj               # Project file with Curiosity.Migrations reference
+└── MyApp.csproj               # Project file with Curiosus.Migrations reference
 ```
 
 **Program.cs**:
 ```csharp
-using Curiosity.Migrations;
+using Curiosus.Migrations;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Reflection;

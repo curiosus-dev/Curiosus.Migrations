@@ -1,10 +1,10 @@
 # Basics
 
-This article explains the fundamental concepts of `Curiosity.Migrations` that you need to understand before diving into specific features.
+This article explains the fundamental concepts of `Curiosus.Migrations` that you need to understand before diving into specific features.
 
 ## How the Migration Engine Works
 
-The `Curiosity.Migrations` library follows a structured process to manage database schema and data changes safely and consistently:
+The `Curiosus.Migrations` library follows a structured process to manage database schema and data changes safely and consistently:
 
 ```
 ┌───────────────────┐     ┌───────────────────┐     ┌───────────────────┐
@@ -78,7 +78,7 @@ The process concludes by:
 
 ## Versioning System
 
-`Curiosity.Migrations` provides a flexible versioning system to organize and sequence your database changes.
+`Curiosus.Migrations` provides a flexible versioning system to organize and sequence your database changes.
 
 ### Version Structure
 
@@ -160,7 +160,7 @@ await migrationEngine.DowngradeDatabaseAsync();
 
 ## Migration Types: Short-Running vs Long-Running
 
-`Curiosity.Migrations` categorizes migrations as either short-running or long-running to help manage resource utilization and scheduling.
+`Curiosus.Migrations` categorizes migrations as either short-running or long-running to help manage resource utilization and scheduling.
 
 ### Key Differences
 
@@ -175,13 +175,13 @@ await migrationEngine.DowngradeDatabaseAsync();
 
 **Short-Running Example**: Adding a new column to a table
 ```sql
--- CURIOSITY: LONG-RUNNING = FALSE
+-- CURIOSUS: LONG-RUNNING = FALSE
 ALTER TABLE users ADD COLUMN email VARCHAR(255);
 ```
 
 **Long-Running Example**: Populating data for millions of rows
 ```sql
--- CURIOSITY: LONG-RUNNING = TRUE
+-- CURIOSUS: LONG-RUNNING = TRUE
 UPDATE users SET email = CONCAT(username, '@example.com');
 ```
 
@@ -210,8 +210,12 @@ public class PopulateUserEmails : CodeMigration
 **For script migrations**:
 Add a special comment at the top of your SQL file:
 ```sql
--- CURIOSITY: LONG-RUNNING = TRUE
+-- CURIOSUS: LONG-RUNNING = TRUE
 ```
+
+!!! note
+    Scripts written for Curiosity.Migrations (before the rename to Curiosus.Migrations) use the `-- CURIOSITY:` prefix.
+    It is still supported, so existing scripts don't need to be changed.
 
 ## Migration Policies
 
@@ -277,7 +281,7 @@ For more information on available providers and custom implementations, see the 
 Here's a complete example showing how to configure the migration engine with all major options:
 
 ```csharp
-using Curiosity.Migrations;
+using Curiosus.Migrations;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;

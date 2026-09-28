@@ -2,7 +2,7 @@
 
 ## Overview
 
-Migration dependencies are a powerful feature in `Curiosity.Migrations` that allow you to explicitly define relationships between migrations. Rather than relying solely on version numbers to determine execution order, dependencies give you precise control over which migrations must be applied before others.
+Migration dependencies are a powerful feature in `Curiosus.Migrations` that allow you to explicitly define relationships between migrations. Rather than relying solely on version numbers to determine execution order, dependencies give you precise control over which migrations must be applied before others.
 
 This feature is essential for managing complex migration scenarios, particularly in large applications with multiple development teams or when migrations affect related database objects but are developed independently.
 
@@ -29,12 +29,12 @@ Dependencies work alongside the standard version-based ordering. The engine stil
 
 ## Implementing Dependencies in Script Migrations
 
-For SQL script migrations, specify dependencies using the `--CURIOSITY:Dependencies` directive at the beginning of your file:
+For SQL script migrations, specify dependencies using the `--CURIOSUS:Dependencies` directive at the beginning of your file:
 
 ```sql
 -- Version: 3.0
 -- Migration to add user permissions
---CURIOSITY:Dependencies=1.0, 2.0
+--CURIOSUS:Dependencies=1.0, 2.0
 
 CREATE TABLE user_permissions (
     id SERIAL PRIMARY KEY,
@@ -49,7 +49,7 @@ CREATE INDEX idx_user_permissions_user_id ON user_permissions(user_id);
 In this example, the migration declares that versions 1.0 and 2.0 must be applied before it can run. This might be because those migrations create the "users" table and add necessary columns that this migration references.
 
 
-The `--CURIOSITY:Dependencies` directive should:
+The `--CURIOSUS:Dependencies` directive should:
 
 - Appear at the beginning of the file (within the first few lines)
 - List dependencies as comma-separated version numbers
@@ -58,9 +58,9 @@ The `--CURIOSITY:Dependencies` directive should:
 Examples:
 
 ```sql
---CURIOSITY:Dependencies=1.0, 2.0                  -- Simple versions
---CURIOSITY:Dependencies=20230101, 20230102.1      -- Date-based versions
---CURIOSITY:Dependencies=2023_01_01, 2023_01_02    -- Versions with underscores
+--CURIOSUS:Dependencies=1.0, 2.0                  -- Simple versions
+--CURIOSUS:Dependencies=20230101, 20230102.1      -- Date-based versions
+--CURIOSUS:Dependencies=2023_01_01, 2023_01_02    -- Versions with underscores
 ```
 
 ## Implementing Dependencies in Code Migrations
@@ -146,7 +146,7 @@ Here's a complete example showing a chain of dependent migrations:
     ```sql
     -- Version: 2.0
     -- authentication.sql
-    --CURIOSITY:Dependencies=1.0
+    --CURIOSUS:Dependencies=1.0
 
     ALTER TABLE users 
     ADD COLUMN password_hash VARCHAR(255) NOT NULL DEFAULT '',
@@ -159,7 +159,7 @@ Here's a complete example showing a chain of dependent migrations:
     ```sql
     -- Version: 3.0
     -- permissions.sql
-    --CURIOSITY:Dependencies=2.0
+    --CURIOSUS:Dependencies=2.0
 
     CREATE TABLE permissions (
         id SERIAL PRIMARY KEY,
