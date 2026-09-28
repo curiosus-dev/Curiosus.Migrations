@@ -1,16 +1,22 @@
-# Curiosus.Migrations [![Build Status](https://github.com/curiosus-dev/Curiosus.Migrations/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/curiosus-dev/Curiosus.Migrations/actions/workflows/build.yml) [![Coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/curiosus-dev/Curiosus.Migrations/badges/coverage.json)](https://github.com/curiosus-dev/Curiosus.Migrations/actions/workflows/release-packages.yml) [![License](https://img.shields.io/github/license/siisltd/curiosity.migrations.svg)](https://github.com/curiosus-dev/Curiosus.Migrations/blob/master/LICENSE) [![NuGet Downloads](https://img.shields.io/nuget/dt/Curiosus.Migrations)](https://www.nuget.org/packages/Curiosus.Migrations) [![Documentation Status](https://readthedocs.org/projects/curiosity-migrations/badge/?version=latest)](https://curiosity-migrations.readthedocs.io/)
+# Curiosus.Migrations
+
+Database migration framework for .NET: raw SQL and C# code migrations, downgrades, long-running data migrations and per-environment policies for PostgreSQL and SQL Server.
+
+[![Build](https://github.com/curiosus-dev/Curiosus.Migrations/actions/workflows/release-packages.yml/badge.svg?branch=master)](https://github.com/curiosus-dev/Curiosus.Migrations/actions/workflows/release-packages.yml)
+[![License](https://img.shields.io/github/license/curiosus-dev/Curiosus.Migrations)](https://github.com/curiosus-dev/Curiosus.Migrations/blob/master/LICENSE)
+[![NuGet Downloads](https://img.shields.io/nuget/dt/Curiosus.Migrations)](https://www.nuget.org/packages/Curiosus.Migrations)
+[![Coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/curiosus-dev/Curiosus.Migrations/badges/coverage.json)](https://github.com/curiosus-dev/Curiosus.Migrations/actions/workflows/release-packages.yml)
+[![Documentation Status](https://readthedocs.org/projects/curiosity-migrations/badge/?version=latest)](https://curiosity-migrations.readthedocs.io/)
 
 > **Renamed:** formerly `Curiosity.Migrations*` by SIIS Ltd. Since 5.0.0 the packages are published as `Curiosus.Migrations*`
 > by [curiosus-dev](https://www.nuget.org/profiles/curiosus-dev). To migrate, replace `Curiosity` with `Curiosus` in package references and code.
 > `-- CURIOSITY:` directives in SQL scripts keep working.
 
-## Introduction
+## Why use it
 
 Curiosus.Migrations is a powerful, flexible database migration framework for .NET and .NET Core applications that gives you precise control over how your database evolves. It combines the performance and control of raw SQL with the flexibility of C# code migrations, all wrapped in a robust, enterprise-ready migration system.
 
 Unlike ORM-specific migration tools, Curiosus.Migrations is database-focused and designed for scenarios where you need fine-grained control over migration execution, especially for large production databases where performance and safety are critical.
-
-## Why Use Curiosus.Migrations?
 
 <table>
   <tr>
@@ -45,7 +51,7 @@ Unlike ORM-specific migration tools, Curiosus.Migrations is database-focused and
   </tr>
 </table>
 
-## Core Features
+## Features
 
 ### Migration Types
 
@@ -73,7 +79,7 @@ Unlike ORM-specific migration tools, Curiosus.Migrations is database-focused and
 - **[Pre-migrations](https://curiosity-migrations.readthedocs.io/en/latest/features/pre_migrations/)**: Run setup scripts before main migrations
 - **[Custom Journal](https://curiosity-migrations.readthedocs.io/en/latest/features/journal/)**: Configure how applied migrations are tracked
 
-## Quick Start
+## Quick start
 
 ### Installation
 
@@ -102,7 +108,7 @@ var migrationEngine = builder.Build();
 var result = await migrationEngine.UpgradeDatabaseAsync();
 
 // Check results
-if (result.IsSuccessful)
+if (result.IsSuccessfully)
 {
     Console.WriteLine($"Successfully migrated");
 }
@@ -116,12 +122,12 @@ Get started quickly with the [**Quick Start Guide**](https://curiosity-migration
   <tbody>
     <tr>
       <td align="center" valign="middle">
-        <img src="https://raw.githubusercontent.com/siisltd/Curiosus.Migrations/refs/heads/master/docs/images/postgresql.png" width="200">
+        <img src="https://raw.githubusercontent.com/curiosus-dev/Curiosus.Migrations/master/docs/images/postgresql.png" width="200">
         <br>
         <b>PostgreSQL</b>
       </td>
       <td align="center" valign="middle">
-        <img src="https://raw.githubusercontent.com/siisltd/Curiosus.Migrations/refs/heads/master/docs/images/sqlserver.svg" width="200">
+        <img src="https://raw.githubusercontent.com/curiosus-dev/Curiosus.Migrations/master/docs/images/sqlserver.svg" width="200">
         <br>
         <b>SQL Server</b>
       </td>
@@ -198,16 +204,16 @@ Support for additional databases can be added through contributions.
 
 For more detailed comparisons, see [The Philosophy Behind Curiosus.Migrations](https://curiosity-migrations.readthedocs.io/en/latest/philosophy/).
 
-## Available Packages
+## Available packages
 
 | Package | Version | Downloads | Coverage |
 |---------|---------|-----------|----------|
-| Curiosus.Migrations | [![NuGet](https://img.shields.io/nuget/v/Curiosus.Migrations.svg)](https://www.nuget.org/packages/Curiosus.Migrations/) | [![NuGet](https://img.shields.io/nuget/dt/Curiosus.Migrations)](https://www.nuget.org/packages/Curiosus.Migrations) | [![Coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/curiosus-dev/Curiosus.Migrations/badges/Curiosus.Migrations.json)](https://github.com/curiosus-dev/Curiosus.Migrations/actions/workflows/release-packages.yml) |
-| Curiosus.Migrations.PostgreSQL | [![NuGet](https://img.shields.io/nuget/v/Curiosus.Migrations.PostgreSQL.svg)](https://www.nuget.org/packages/Curiosus.Migrations.PostgreSQL/) | [![NuGet](https://img.shields.io/nuget/dt/Curiosus.Migrations.PostgreSQL)](https://www.nuget.org/packages/Curiosus.Migrations.PostgreSQL) | [![Coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/curiosus-dev/Curiosus.Migrations/badges/Curiosus.Migrations.PostgreSQL.json)](https://github.com/curiosus-dev/Curiosus.Migrations/actions/workflows/release-packages.yml) |
-| Curiosus.Migrations.SqlServer | [![NuGet](https://img.shields.io/nuget/v/Curiosus.Migrations.SqlServer.svg)](https://www.nuget.org/packages/Curiosus.Migrations.SqlServer/) | [![NuGet](https://img.shields.io/nuget/dt/Curiosus.Migrations.SqlServer)](https://www.nuget.org/packages/Curiosus.Migrations.SqlServer) | [![Coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/curiosus-dev/Curiosus.Migrations/badges/Curiosus.Migrations.SqlServer.json)](https://github.com/curiosus-dev/Curiosus.Migrations/actions/workflows/release-packages.yml) |
-| Curiosus.Migrations.Utils | [![NuGet](https://img.shields.io/nuget/v/Curiosus.Migrations.Utils.svg)](https://www.nuget.org/packages/Curiosus.Migrations.Utils/) | [![NuGet](https://img.shields.io/nuget/dt/Curiosus.Migrations.Utils)](https://www.nuget.org/packages/Curiosus.Migrations.Utils) | [![Coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/curiosus-dev/Curiosus.Migrations/badges/Curiosus.Migrations.Utils.json)](https://github.com/curiosus-dev/Curiosus.Migrations/actions/workflows/release-packages.yml) |
+| [Curiosus.Migrations](https://github.com/curiosus-dev/Curiosus.Migrations/blob/master/src/Curiosus.Migrations/README.md) | [![NuGet](https://img.shields.io/nuget/v/Curiosus.Migrations.svg)](https://www.nuget.org/packages/Curiosus.Migrations/) | [![NuGet](https://img.shields.io/nuget/dt/Curiosus.Migrations)](https://www.nuget.org/packages/Curiosus.Migrations) | [![Coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/curiosus-dev/Curiosus.Migrations/badges/Curiosus.Migrations.json)](https://github.com/curiosus-dev/Curiosus.Migrations/actions/workflows/release-packages.yml) |
+| [Curiosus.Migrations.PostgreSQL](https://github.com/curiosus-dev/Curiosus.Migrations/blob/master/src/Curiosus.Migrations.PostgreSQL/README.md) | [![NuGet](https://img.shields.io/nuget/v/Curiosus.Migrations.PostgreSQL.svg)](https://www.nuget.org/packages/Curiosus.Migrations.PostgreSQL/) | [![NuGet](https://img.shields.io/nuget/dt/Curiosus.Migrations.PostgreSQL)](https://www.nuget.org/packages/Curiosus.Migrations.PostgreSQL) | [![Coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/curiosus-dev/Curiosus.Migrations/badges/Curiosus.Migrations.PostgreSQL.json)](https://github.com/curiosus-dev/Curiosus.Migrations/actions/workflows/release-packages.yml) |
+| [Curiosus.Migrations.SqlServer](https://github.com/curiosus-dev/Curiosus.Migrations/blob/master/src/Curiosus.Migrations.SqlServer/README.md) | [![NuGet](https://img.shields.io/nuget/v/Curiosus.Migrations.SqlServer.svg)](https://www.nuget.org/packages/Curiosus.Migrations.SqlServer/) | [![NuGet](https://img.shields.io/nuget/dt/Curiosus.Migrations.SqlServer)](https://www.nuget.org/packages/Curiosus.Migrations.SqlServer) | [![Coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/curiosus-dev/Curiosus.Migrations/badges/Curiosus.Migrations.SqlServer.json)](https://github.com/curiosus-dev/Curiosus.Migrations/actions/workflows/release-packages.yml) |
+| [Curiosus.Migrations.Utils](https://github.com/curiosus-dev/Curiosus.Migrations/blob/master/src/Curiosus.Migrations.Utils/README.md) | [![NuGet](https://img.shields.io/nuget/v/Curiosus.Migrations.Utils.svg)](https://www.nuget.org/packages/Curiosus.Migrations.Utils/) | [![NuGet](https://img.shields.io/nuget/dt/Curiosus.Migrations.Utils)](https://www.nuget.org/packages/Curiosus.Migrations.Utils) | [![Coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/curiosus-dev/Curiosus.Migrations/badges/Curiosus.Migrations.Utils.json)](https://github.com/curiosus-dev/Curiosus.Migrations/actions/workflows/release-packages.yml) |
 
-## Community and Support
+## Support
 
 * [GitHub Issues](https://github.com/curiosus-dev/Curiosus.Migrations/issues) - Report bugs or request features
 
