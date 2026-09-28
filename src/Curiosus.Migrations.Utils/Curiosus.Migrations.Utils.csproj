@@ -19,7 +19,6 @@
         <PackageProjectUrl>https://curiosity-migrations.readthedocs.io/</PackageProjectUrl>
         <RepositoryType>git</RepositoryType>
         <RepositoryUrl>https://github.com/curiosus-dev/Curiosus.Migrations</RepositoryUrl>
-        <PackageReleaseNotes>https://github.com/curiosus-dev/Curiosus.Migrations/tree/master/src/Curiosus.Migrations.Utils/CHANGELOG.md</PackageReleaseNotes>
 
         <LangVersion>11</LangVersion>
         <Nullable>enable</Nullable>

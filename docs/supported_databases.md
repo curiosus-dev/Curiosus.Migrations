@@ -4,10 +4,10 @@
   <tbody>
     <tr>
       <td align="center" valign="middle">
-          <img src="https://raw.githubusercontent.com/curiosus-dev/Curiosus.Migrations/master/docs/images/postgresql.png" width="200">
+          <img src="https://raw.githubusercontent.com/curiosus-dev/Curiosus.Migrations/main/docs/images/postgresql.png" width="200">
       </td>
       <td align="center" valign="middle">
-          <img src="https://raw.githubusercontent.com/curiosus-dev/Curiosus.Migrations/master/docs/images/sqlserver.svg" width="200">
+          <img src="https://raw.githubusercontent.com/curiosus-dev/Curiosus.Migrations/main/docs/images/sqlserver.svg" width="200">
           <br>
           <b>SQL Server</b>
       </td>
