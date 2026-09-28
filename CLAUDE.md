@@ -17,7 +17,7 @@ Documentation (MkDocs, ReadTheDocs) lives in `docs/`, published at https://curio
 - `Curiosus.Migrations.SqlServer` — SQL Server connection.
 - `Curiosus.Migrations.Utils` — helpers for code migrations (e.g. mass updates).
 
-Each package has its own `<PackageVersion>` and `CHANGELOG.md`, released independently.
+Each package has its own `CHANGELOG.md`, whose top `## [x.y.z]` section is the package version; packages are released independently.
 Libraries multi-target down to `netstandard2.0` with `LangVersion` 11, so avoid APIs and language features
 that are missing there (e.g. `ArgumentNullException.ThrowIfNull`), or guard them with `#if`.
 
