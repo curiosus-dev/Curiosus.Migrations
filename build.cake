@@ -1,3 +1,5 @@
+#load "build/publish.cake"
+
 ///////////////////////////////////////////////////////////////////////////////
 // ARGUMENTS
 ///////////////////////////////////////////////////////////////////////////////
@@ -6,16 +8,12 @@ var target = Argument<string>("target", "Default");
 var configuration = Argument<string>("configuration", "Release");
 
 var artifactsDir = Directory("./artifacts");
-var packages = "./artifacts/packages";
 var solutionPath = "./Curiosity.Migrations.sln";
-
-var nugetSource = "https://api.nuget.org/v3/index.json";
-var nugetApiKey = Argument<string>("nugetApiKey", null);
 
 Task("Clean")
     .Does(() => 
     {            
-        DotNetCoreClean(solutionPath);
+        DotNetClean(solutionPath);
         DirectoryPath[] cleanDirectories = new DirectoryPath[] {
             artifactsDir
         };
@@ -30,12 +28,12 @@ Task("Build")
     .IsDependentOn("Clean")
     .Does(() => 
     {
-        var settings = new DotNetCoreBuildSettings
+        var settings = new DotNetBuildSettings
           {
               Configuration = configuration
           };
           
-        DotNetCoreBuild(
+        DotNetBuild(
             solutionPath,
             settings);
     });
@@ -49,9 +47,9 @@ Task("UnitTests")
         {
             Information(project);
             
-            DotNetCoreTest(
+            DotNetTest(
                 project.FullPath,
-                new DotNetCoreTestSettings()
+                new DotNetTestSettings()
                 {
                     Configuration = configuration,
                     NoBuild = false
@@ -72,9 +70,9 @@ Task("IntegrationTests")
         {
             Information(project);
             
-            DotNetCoreTest(
+            DotNetTest(
                 project.FullPath,
-                new DotNetCoreTestSettings()
+                new DotNetTestSettings()
                 {
                     Configuration = configuration,
                     NoBuild = false
@@ -82,67 +80,9 @@ Task("IntegrationTests")
         }
     });
     
-Task("Pack")
-    .Does(() =>
-    {        
-         Information("Packing to nupkg...");
-         var settings = new DotNetCorePackSettings
-          {
-              Configuration = configuration,
-              OutputDirectory = packages
-          };
-         
-          DotNetCorePack(solutionPath, settings);
-    });
- 
-Task("Publish")
-    .IsDependentOn("Pack")
-    .Does(() =>
-    {
-         var pushSettings = new DotNetCoreNuGetPushSettings
-         {
-             Source = nugetSource,
-             ApiKey = nugetApiKey,
-             SkipDuplicate = true
-         };
-
-         var pkgs = GetFiles($"{packages}/*.nupkg");
-         foreach(var pkg in pkgs)
-         {
-             Information($"Publishing \"{pkg}\".");
-             DotNetCoreNuGetPush(pkg.FullPath, pushSettings);
-         }
- });
- 
-Task("ForcePublish")
-    .IsDependentOn("Pack")
-    .Does(() =>
-    {
-         var pushSettings = new DotNetCoreNuGetPushSettings 
-         {
-             Source = nugetSource,
-             ApiKey = nugetApiKey,
-             SkipDuplicate = true
-         };
-         
-         var pkgs = GetFiles($"{packages}/*.nupkg");
-         foreach(var pkg in pkgs) 
-         {     
-             Information($"Publishing \"{pkg}\".");
-             DotNetCoreNuGetPush(pkg.FullPath, pushSettings);
-         }
- }); 
-    
 Task("Default")
     .IsDependentOn("Build")
     .IsDependentOn("UnitTests")
     .IsDependentOn("IntegrationTests");
     
-Task("GitHub")
-    .IsDependentOn("Build")
-    .IsDependentOn("UnitTests")
-    .IsDependentOn("IntegrationTests")
-    .IsDependentOn("Pack")
-    .IsDependentOn("Publish");
-  
 RunTarget(target);
