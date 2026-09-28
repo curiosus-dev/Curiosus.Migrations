@@ -1,3 +1,8 @@
+---
+sidebar_position: 3
+sidebar_label: Dependency Injection
+---
+
 # Dependency Injection
 
 The `Curiosus.Migrations` library supports Dependency Injection (DI) to facilitate the creation and management of migration classes. This is primarily achieved through the `CodeMigrationsProvider`. This class is responsible for discovering and creating code migrations. It utilizes the `IServiceCollection` to register migration types, enabling the DI container to resolve and inject dependencies into migration classes.

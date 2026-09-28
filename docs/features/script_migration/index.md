@@ -1,3 +1,8 @@
+---
+sidebar_position: 1
+sidebar_label: What is it
+---
+
 # Script migration
 
 Script migrations are used to apply changes to a database using raw SQL scripts. Script migrations can be organized into batches, allowing for more granular control over the execution order and transaction management.

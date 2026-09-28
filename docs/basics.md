@@ -1,3 +1,8 @@
+---
+sidebar_position: 4
+sidebar_label: Basics
+---
+
 # Basics
 
 This article explains the fundamental concepts of `Curiosus.Migrations` that you need to understand before diving into specific features.
@@ -213,9 +218,12 @@ Add a special comment at the top of your SQL file:
 -- CURIOSUS: LONG-RUNNING = TRUE
 ```
 
-!!! note
-    Scripts written for Curiosity.Migrations (before the rename to Curiosus.Migrations) use the `-- CURIOSITY:` prefix.
-    It is still supported, so existing scripts don't need to be changed.
+:::note
+
+Scripts written for Curiosity.Migrations (before the rename to Curiosus.Migrations) use the `-- CURIOSITY:` prefix.
+It is still supported, so existing scripts don't need to be changed.
+
+:::
 
 ## Migration Policies
 

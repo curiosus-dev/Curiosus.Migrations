@@ -1,3 +1,8 @@
+---
+sidebar_position: 4
+sidebar_label: Variables
+---
+
 # Variables and variable substitution
 
 `Curiosus.Migrations` supports basic variable substitution.

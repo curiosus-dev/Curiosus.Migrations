@@ -1,0 +1,1 @@
+../../src/Curiosus.Migrations.Utils/CHANGELOG.md

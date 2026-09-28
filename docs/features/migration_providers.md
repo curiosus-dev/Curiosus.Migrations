@@ -1,3 +1,8 @@
+---
+sidebar_position: 3
+sidebar_label: Migration Providers
+---
+
 # Migration Providers
 
 Migration providers are responsible for supplying migrations from various sources to the migration engine. They implement the `IMigrationsProvider` interface, which defines a method to return a collection of migrations.
@@ -22,7 +27,7 @@ The `CodeMigrationsProvider` is designed to handle migrations written in C#. Mig
         .FromAssembly(assembly);
     ```
 
-- **FromAssembly<T>**
+- **`FromAssembly<T>`**
   
     Use this method to set up an assembly for scanning migrations with a specified type. This is beneficial when you want to filter migrations by a specific type within an assembly.
 

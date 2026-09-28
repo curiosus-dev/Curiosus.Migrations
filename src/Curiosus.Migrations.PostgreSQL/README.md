@@ -39,12 +39,12 @@ Every parameter except `connectionString` is optional. If you leave one out, the
 | `databaseEncoding`, `lcCollate`, `lcCtype` | Encoding and locale of a newly created database |
 | `connectionLimit`, `template`, `tableSpace` | Other `CREATE DATABASE` settings |
 
-The provider also defines the `%USER%` and `%DBNAME%` [variables](https://curiosity-migrations.readthedocs.io/en/latest/features/variables/), which are substituted into script migrations.
+The provider also defines the `%USER%` and `%DBNAME%` [variables](https://curiosus-dev.github.io/Curiosus.Migrations/features/variables), which are substituted into script migrations.
 
 ## See also
 
 - [Curiosus.Migrations](https://www.nuget.org/packages/Curiosus.Migrations): core engine
 - [Curiosus.Migrations.Utils](https://www.nuget.org/packages/Curiosus.Migrations.Utils): batched mass updates (the CTE-based example targets PostgreSQL)
-- [Supported databases: PostgreSQL](https://curiosity-migrations.readthedocs.io/en/latest/supported_databases/#postgresql)
-- [Quick Start](https://curiosity-migrations.readthedocs.io/en/latest/quickstart/)
+- [Supported databases: PostgreSQL](https://curiosus-dev.github.io/Curiosus.Migrations/supported_databases#postgresql)
+- [Quick Start](https://curiosus-dev.github.io/Curiosus.Migrations/quickstart)
 - [Curiosus.Migrations](https://github.com/curiosus-dev/Curiosus.Migrations): repository and all packages
