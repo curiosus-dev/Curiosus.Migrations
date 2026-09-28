@@ -5,16 +5,14 @@
         <Title>Utils for Curiosus.Migrations.</Title>
         <Description>Without migrations you need to create a lots of sql scripts that have to be run manually by every developer involved. Migrations solve the problem of evolving a database schema for multiple databases (for example, the developer's local database, the test database and the production database).</Description>
         <Summary>Without migrations you need to create a lots of sql scripts that have to be run manually by every developer involved. Migrations solve the problem of evolving a database schema for multiple databases (for example, the developer's local database, the test database and the production database).</Summary>
-        <PackageTags>migrations; migration; migrator; versioning; migration-tool; .net-core; .netstandard; database; siisltd; curiosus; utils</PackageTags>
+        <PackageTags>migrations; migration; migrator; versioning; migration-tool; .net-core; .netstandard; database; curiosus; utils</PackageTags>
         <Language>English</Language>
         
         <PackageVersion>5.0.0</PackageVersion>
         <AssemblyVersion>1.0.0</AssemblyVersion>
         <FileVersion>1.0.0</FileVersion>
 
-        <Authors>Maxim Markelow (@markeli), Andrei Vinogradov (@anri-vin)</Authors>
-        <Company>SIIS Ltd</Company>
-        <Copyright>SIIS Ltd, 2026</Copyright>
+        <Authors>$(CuriosusAuthors), Andrei Vinogradov (@anri-vin)</Authors>
         
         <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -23,7 +21,6 @@
         <RepositoryType>git</RepositoryType>
         <RepositoryUrl>https://github.com/curiosus-dev/Curiosus.Migrations</RepositoryUrl>
         <PackageReleaseNotes>https://github.com/curiosus-dev/Curiosus.Migrations/tree/master/src/Curiosus.Migrations.Utils/CHANGELOG.md</PackageReleaseNotes>
-        <PackageIcon>siisltd.png</PackageIcon>
 
         <LangVersion>11</LangVersion>
         <Nullable>enable</Nullable>
@@ -41,10 +38,6 @@
 
     <ItemGroup>
       <PackageReference Include="Dapper" Version="2.1.66" />
-    </ItemGroup>
-
-    <ItemGroup>
-        <None Include="..\..\siisltd.png" Pack="true" PackagePath="\" />
     </ItemGroup>
 
 </Project>
