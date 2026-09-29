@@ -15,7 +15,7 @@
         <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         
-        <PackageProjectUrl>https://curiosity-migrations.readthedocs.io/</PackageProjectUrl>
+        <PackageProjectUrl>https://curiosus-dev.github.io/Curiosus.Migrations/</PackageProjectUrl>
         <RepositoryType>git</RepositoryType>
         <RepositoryUrl>https://github.com/curiosus-dev/Curiosus.Migrations</RepositoryUrl>
         

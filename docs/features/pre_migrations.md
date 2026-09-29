@@ -1,3 +1,8 @@
+---
+sidebar_position: 6
+sidebar_label: Pre-migrations
+---
+
 # Pre-migrations
 
 Pre-migrations are a set of migrations that are executed before the main migrations. They are useful for preparing the database environment or performing tasks that must be completed before the main migration logic is applied. Pre-migrations are executed each time the migration engine runs because they are not stored in the migration journal.

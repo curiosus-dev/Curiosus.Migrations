@@ -1,1 +1,0 @@
-../../src/Curiosity.Migrations.PostgreSQL/CHANGELOG.md

@@ -44,6 +44,6 @@ Every parameter except `connectionString` is optional:
 
 - [Curiosus.Migrations](https://www.nuget.org/packages/Curiosus.Migrations): core engine
 - [Curiosus.Migrations.Utils](https://www.nuget.org/packages/Curiosus.Migrations.Utils): batched mass updates
-- [Supported databases: SQL Server](https://curiosity-migrations.readthedocs.io/en/latest/supported_databases/#sql-server)
-- [Script migrations and batches](https://curiosity-migrations.readthedocs.io/en/latest/features/script_migration/batches/)
+- [Supported databases: SQL Server](https://curiosus-dev.github.io/Curiosus.Migrations/supported_databases#sql-server)
+- [Script migrations and batches](https://curiosus-dev.github.io/Curiosus.Migrations/features/script_migration/batches)
 - [Curiosus.Migrations](https://github.com/curiosus-dev/Curiosus.Migrations): repository and all packages

@@ -1,4 +1,4 @@
-# Changelog
+# Changelog: Curiosus.Migrations.SqlServer
 
 ## [5.0.0] - 2026-09-28
 

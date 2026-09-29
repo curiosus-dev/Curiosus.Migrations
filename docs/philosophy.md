@@ -1,3 +1,8 @@
+---
+sidebar_position: 3
+sidebar_label: Philosophy
+---
+
 # The Philosophy Behind `Curiosus.Migrations`
 
 ## Introduction

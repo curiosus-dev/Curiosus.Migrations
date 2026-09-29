@@ -1,3 +1,8 @@
+---
+sidebar_position: 2
+sidebar_label: EntityFramework Integration
+---
+
 # Entity Framework Core Integration
 
 ## Overview

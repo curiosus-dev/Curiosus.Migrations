@@ -1,0 +1,4 @@
+{
+  "title": "Curiosus.Migrations",
+  "tagline": "Database migrations for .NET: SQL scripts and C# code, downgrades, long-running migrations, policies"
+}

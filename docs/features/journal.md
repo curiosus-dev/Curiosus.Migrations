@@ -1,3 +1,8 @@
+---
+sidebar_position: 8
+sidebar_label: Journal
+---
+
 # Journal
 
 Journal is database table that records the history of all applied migrations. This table is essential for managing database schema changes, ensuring that migrations are applied consistently and accurately across different environments.

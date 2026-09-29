@@ -1,3 +1,8 @@
+---
+sidebar_position: 2
+sidebar_label: Batches
+---
+
 # Script Migration Batches
 
 Script migrations in `Curiosus.Migrations` can be divided into batches to provide more granular control over SQL script execution. Batches are particularly useful in the following scenarios:

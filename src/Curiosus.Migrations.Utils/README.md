@@ -54,6 +54,6 @@ The example is for PostgreSQL. On other databases, write an equivalent batched `
 
 - [Curiosus.Migrations](https://www.nuget.org/packages/Curiosus.Migrations): core engine
 - [Curiosus.Migrations.PostgreSQL](https://www.nuget.org/packages/Curiosus.Migrations.PostgreSQL) and [Curiosus.Migrations.SqlServer](https://www.nuget.org/packages/Curiosus.Migrations.SqlServer): database providers
-- [Code migrations](https://curiosity-migrations.readthedocs.io/en/latest/features/code_migration/)
-- [Short-running vs long-running migrations](https://curiosity-migrations.readthedocs.io/en/latest/basics/#migration-types-short-running-vs-long-running)
+- [Code migrations](https://curiosus-dev.github.io/Curiosus.Migrations/features/code_migration)
+- [Short-running vs long-running migrations](https://curiosus-dev.github.io/Curiosus.Migrations/basics#migration-types-short-running-vs-long-running)
 - [Curiosus.Migrations](https://github.com/curiosus-dev/Curiosus.Migrations): repository and all packages

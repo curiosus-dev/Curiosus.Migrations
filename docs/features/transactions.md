@@ -1,3 +1,8 @@
+---
+sidebar_position: 5
+sidebar_label: Transactions
+---
+
 # Transactions
 
 Transactions are a fundamental aspect of database migrations, ensuring that changes are applied consistently and reliably. This atomicity is crucial for maintaining data integrity, especially in complex migrations involving multiple steps or operations.

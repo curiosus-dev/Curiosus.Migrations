@@ -1,3 +1,8 @@
+---
+sidebar_position: 10
+sidebar_label: Dependencies
+---
+
 # Migration Dependencies
 
 ## Overview
