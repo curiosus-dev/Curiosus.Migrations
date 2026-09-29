@@ -17,7 +17,13 @@ function loadSite() {
     for (const key of ['title', 'tagline']) {
         if (typeof site[key] !== 'string' || !site[key]) throw new Error(`docs.json: "${key}" is required`);
     }
-    return site;
+    const { siteVerification, ...docSearch } = site.algolia ?? {};
+    for (const key of Object.keys(docSearch).length ? ['appId', 'apiKey', 'indexName'] : []) {
+        if (typeof docSearch[key] !== 'string' || !docSearch[key]) {
+            throw new Error(`docs.json: "algolia.${key}" is required for Algolia DocSearch`);
+        }
+    }
+    return { ...site, siteVerification, docSearch: Object.keys(docSearch).length ? docSearch : undefined };
 }
 
 function resolveRepository() {
@@ -47,6 +53,26 @@ async function sidebarItemsGenerator({ defaultSidebarItemsGenerator, ...args }) 
     return home > 0 ? [items[home], ...items.filter((_, i) => i !== home)] : items;
 }
 
+// Cross links in the footer; a library with a documentation site links to it, the others to the repository.
+const libraries = [
+    { name: 'Curiosus.Migrations', site: true },
+    { name: 'Curiosus.Utils', site: true },
+    { name: 'Curiosus.TelegramBot', site: false },
+];
+const libraryLinks = libraries
+    .filter((library) => library.name !== name)
+    .map((library) => ({
+        label: library.name,
+        href: library.site ? `https://${owner}.github.io/${library.name}/` : `https://github.com/${owner}/${library.name}`,
+    }));
+
+// Algolia DocSearch when docs.json has its keys (https://docsearch.algolia.com), a local search index otherwise.
+// algolia.siteVerification alone only adds the meta tag Algolia checks to verify the domain.
+const localSearch = [
+    '@easyops-cn/docusaurus-search-local',
+    { hashed: true, indexBlog: false, docsDir: docsDir, docsRouteBasePath: '/', highlightSearchTermsOnTargetPage: true },
+];
+
 export default {
     title: site.title,
     tagline: site.tagline,
@@ -70,7 +96,12 @@ export default {
             theme: { customCss: './src/css/custom.css' },
         },
     ]],
+    headTags: site.siteVerification
+        ? [{ tagName: 'meta', attributes: { name: 'algolia-site-verification', content: site.siteVerification } }]
+        : [],
+    themes: site.docSearch ? [] : [localSearch],
     themeConfig: {
+        ...(site.docSearch && { algolia: { ...site.docSearch, contextualSearch: true } }),
         colorMode: { respectPrefersColorScheme: true },
         navbar: {
             title: site.title,
@@ -82,14 +113,16 @@ export default {
         },
         footer: {
             style: 'dark',
-            links: [{
-                title: 'Curiosus',
-                items: [
-                    { label: 'GitHub', href: `https://github.com/${owner}` },
-                    { label: 'NuGet', href: nugetUrl },
-                    { label: 'dotnet-tools', href: `https://github.com/${owner}/dotnet-tools` },
-                ],
-            }],
+            links: [
+                { title: 'Libraries', items: libraryLinks },
+                {
+                    title: 'Curiosus',
+                    items: [
+                        { label: 'GitHub', href: `https://github.com/${owner}` },
+                        { label: 'NuGet', href: nugetUrl },
+                    ],
+                },
+            ],
             copyright: `© ${new Date().getFullYear()} Curiosus contributors`,
         },
         prism: {
