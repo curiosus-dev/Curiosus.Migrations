@@ -21,7 +21,6 @@ public static class MigrationEngineBuilderExtensions
     /// <param name="initialSize">Initial size of database in MB.</param>
     /// <param name="maxSize">Maximum size of database in MB.</param>
     /// <param name="fileGrowth">File growth in MB.</param>
-    /// <param name="maxConnections">Maximum number of connections.</param>
     /// <returns>Configured builder.</returns>
     /// <remarks>
     /// For detailed params description look at <see cref="SqlServerMigrationConnectionOptions"/>

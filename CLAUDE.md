@@ -20,8 +20,9 @@ https://curiosus-dev.github.io/Curiosus.Migrations/, `website/` is synced from d
 - `Curiosus.Migrations.Utils` — helpers for code migrations (e.g. mass updates).
 
 Each package has its own `CHANGELOG.md`, whose top `## [x.y.z]` section is the package version; packages are released independently.
-Libraries multi-target down to `netstandard2.0` with `LangVersion` 11, so avoid APIs and language features
-that are missing there (e.g. `ArgumentNullException.ThrowIfNull`), or guard them with `#if`.
+Libraries and tests target `net9.0` and `net10.0` only (no `net8.0`, unlike the other Curiosus libraries), with the
+default C# version of each. EF Core 10 supports `net10.0` only, so test projects using it reference EF Core 9 for
+`net9.0`. Tests use xUnit v3 (`xunit.v3.mtp-off`: VSTest mode, which the shared Cake coverage collection needs).
 
 ## Tests
 

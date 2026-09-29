@@ -2,10 +2,10 @@
 
     <PropertyGroup>
         <PackageId>Curiosus.Migrations.SqlServer</PackageId>
-        <Title>MS SQL Server provider for Curiosus.Migrations. </Title>
+        <Title>MS SQL Server provider for Curiosus.Migrations.</Title>
         <Description>Curiosus.Migrations is a migration framework that uses SQL scripts and code migration to alter your database schema or seed a data.</Description>
         <Summary>Without migrations you need to create a lots of sql scripts that have to be run manually by every developer involved. Migrations solve the problem of evolving a database schema for multiple databases (for example, the developer's local database, the test database and the production database).</Summary>
-        <PackageTags>migrations; migration; migrator; versioning; migration-tool; .net-core; .netstandard; database; curiosus; sqlserver</PackageTags>
+        <PackageTags>migrations; migration; migrator; versioning; migration-tool; .net; database; curiosus; sqlserver</PackageTags>
         <Language>English</Language>
 
         <AssemblyVersion>1.0.0</AssemblyVersion>
@@ -20,18 +20,17 @@
         <RepositoryType>git</RepositoryType>
         <RepositoryUrl>https://github.com/curiosus-dev/Curiosus.Migrations</RepositoryUrl>
 
-        <LangVersion>11</LangVersion>
         <Nullable>enable</Nullable>
         <IsPackable>true</IsPackable>
-        <TargetFrameworks>net10.0;net9.0;net8.0;net7.0;net6.0;netcoreapp3.1;netstandard2.0;netstandard2.1</TargetFrameworks>
+        <TargetFrameworks>net10.0;net9.0</TargetFrameworks>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
-      <DocumentationFile>bin\Release\netstandard2.0\Curiosus.Migrations.SqlServer.xml</DocumentationFile>
+      <GenerateDocumentationFile>true</GenerateDocumentationFile>
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Microsoft.Data.SqlClient" Version="6.1.4" />
+      <PackageReference Include="Microsoft.Data.SqlClient" Version="7.1.0" />
     </ItemGroup>
 
     <ItemGroup>

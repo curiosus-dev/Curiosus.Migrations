@@ -12,14 +12,14 @@ public class SqlServerDbCreationTests : IClassFixture<SqlServerContainerFixture>
         _containerFixture = containerFixture;
     }
     
-    public Task InitializeAsync()
+    public ValueTask InitializeAsync()
     {
         return _containerFixture.InitializeAsync();
     }
     
-    public Task DisposeAsync() 
+    public ValueTask DisposeAsync()
     {
-        return Task.CompletedTask; // Container will be disposed by the singleton fixture
+        return ValueTask.CompletedTask; // Container will be disposed by the singleton fixture
     }
 
     [Fact]

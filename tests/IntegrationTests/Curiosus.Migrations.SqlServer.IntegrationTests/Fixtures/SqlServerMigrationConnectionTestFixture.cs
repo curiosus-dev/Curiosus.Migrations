@@ -18,7 +18,7 @@ public class SqlServerMigrationConnectionTestFixture : IAsyncLifetime
         _containerFixture = new SqlServerContainerFixture();
     }
 
-    public async Task InitializeAsync()
+    public async ValueTask InitializeAsync()
     {
         // Start the container
         await _containerFixture.InitializeAsync();
@@ -36,7 +36,7 @@ public class SqlServerMigrationConnectionTestFixture : IAsyncLifetime
         MigrationConnection = new SqlServerMigrationConnection(Options);
     }
 
-    public Task DisposeAsync()
+    public ValueTask DisposeAsync()
     {
         try
         {
@@ -56,12 +56,12 @@ public class SqlServerMigrationConnectionTestFixture : IAsyncLifetime
             
             masterConnection.ExecuteNonQuerySqlAsync(dropQuery, null).GetAwaiter().GetResult();
             
-            return Task.CompletedTask;
+            return ValueTask.CompletedTask;
         }
         catch (Exception e)
         {
             Console.WriteLine($"Error during test cleanup: {e.Message}");
-            return Task.CompletedTask;
+            return ValueTask.CompletedTask;
         }
     }
 } 

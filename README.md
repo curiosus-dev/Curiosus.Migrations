@@ -70,7 +70,7 @@ Unlike ORM-specific migration tools, Curiosus.Migrations is database-focused and
 - **[Dependencies](https://curiosus-dev.github.io/Curiosus.Migrations/features/dependencies)**: Specify explicit requirements between migrations
 - **[Downgrade Migrations](https://curiosus-dev.github.io/Curiosus.Migrations/features/downgrade)**: Safely roll back changes when needed
 - **[Transactions](https://curiosus-dev.github.io/Curiosus.Migrations/features/transactions)**: Configure transaction behavior per migration
-- **Long-running vs Short-running**: Separate quick schema changes from data-intensive operations
+- **[Long-running vs Short-running](https://curiosus-dev.github.io/Curiosus.Migrations/basics#migration-types-short-running-vs-long-running)**: Separate quick schema changes from data-intensive operations
 
 ### Extensibility
 
