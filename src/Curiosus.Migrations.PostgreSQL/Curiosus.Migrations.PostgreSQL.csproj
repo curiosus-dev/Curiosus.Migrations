@@ -2,10 +2,10 @@
 
     <PropertyGroup>
         <PackageId>Curiosus.Migrations.PostgreSQL</PackageId>
-        <Title>PostgreSQL provier for Curiosus.Migrations. </Title>
+        <Title>PostgreSQL provider for Curiosus.Migrations.</Title>
         <Description>Curiosus.Migrations is a migration framework that uses SQL scripts and code migration to alter your database schema or seed a data.</Description>
         <Summary>Without migrations you need to create a lots of sql scripts that have to be run manually by every developer involved. Migrations solve the problem of evolving a database schema for multiple databases (for example, the developer's local database, the test database and the production database).</Summary>
-        <PackageTags>migrations; migration; migrator; versioning; migration-tool; .net-core; .netstandard; database; curiosus</PackageTags>
+        <PackageTags>migrations; migration; migrator; versioning; migration-tool; .net; database; curiosus</PackageTags>
         <Language>English</Language>
 
         <AssemblyVersion>1.0.0</AssemblyVersion>
@@ -20,18 +20,17 @@
         <RepositoryType>git</RepositoryType>
         <RepositoryUrl>https://github.com/curiosus-dev/Curiosus.Migrations</RepositoryUrl>
 
-        <LangVersion>11</LangVersion>
         <Nullable>enable</Nullable>
         <IsPackable>true</IsPackable>
-        <TargetFrameworks>net10.0;net9.0;net8.0</TargetFrameworks>
+        <TargetFrameworks>net10.0;net9.0</TargetFrameworks>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
-      <DocumentationFile>bin\Release\netstandard2.0\Curiosus.Migrations.PostgreSQL.xml</DocumentationFile>
+      <GenerateDocumentationFile>true</GenerateDocumentationFile>
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Npgsql" Version="10.0.1" />
+      <PackageReference Include="Npgsql" Version="10.0.0" />
     </ItemGroup>
 
     <ItemGroup>

@@ -19,7 +19,7 @@ public class PostgresMigrationConnectionTestFixture : IAsyncLifetime
         _containerFixture = new PostgresContainerFixture();
     }
 
-    public async Task InitializeAsync()
+    public async ValueTask InitializeAsync()
     {
         // Start the container
         await _containerFixture.InitializeAsync();
@@ -35,7 +35,7 @@ public class PostgresMigrationConnectionTestFixture : IAsyncLifetime
         MigrationConnection = new PostgresMigrationConnection(Options);
     }
 
-    public async Task DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
         await _containerFixture.DisposeAsync();
     }

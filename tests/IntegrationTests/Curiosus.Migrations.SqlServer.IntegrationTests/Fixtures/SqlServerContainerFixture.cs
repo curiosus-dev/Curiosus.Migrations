@@ -46,15 +46,15 @@ public class SqlServerContainerFixture : IAsyncLifetime
     /// <summary>
     /// Initializes the container
     /// </summary>
-    public Task InitializeAsync()
+    public ValueTask InitializeAsync()
     {
-            return Container.StartAsync();
+            return new ValueTask(Container.StartAsync());
     }
     
     /// <summary>
     /// Disposes the container
     /// </summary>
-    public async Task DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
         await Container.DisposeAsync();
     }

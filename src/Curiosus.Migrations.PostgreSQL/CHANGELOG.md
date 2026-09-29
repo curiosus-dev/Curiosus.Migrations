@@ -1,5 +1,12 @@
 # Changelog: Curiosus.Migrations.PostgreSQL
 
+## [6.0.0] - 2026-09-29
+
+### Changed
+
+- **Breaking:** dropped the `net8.0` target. Supported targets are `net9.0` and `net10.0`: stay on 5.x for .NET 8.
+- Npgsql 10.0.0 (was 10.0.1): the lowest version of the latest major, your application may use any later 10.x.
+
 ## [5.0.0] - 2026-09-28
 
 ### Changed

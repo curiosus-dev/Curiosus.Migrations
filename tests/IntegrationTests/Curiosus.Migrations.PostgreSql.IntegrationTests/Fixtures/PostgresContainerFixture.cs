@@ -52,7 +52,7 @@ public class PostgresContainerFixture : IAsyncLifetime
     /// <summary>
     /// Initializes the container
     /// </summary>
-    public async Task InitializeAsync()
+    public async ValueTask InitializeAsync()
     {
         await Container.StartAsync();
     }
@@ -60,7 +60,7 @@ public class PostgresContainerFixture : IAsyncLifetime
     /// <summary>
     /// Disposes the container
     /// </summary>
-    public async Task DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
         await Container.DisposeAsync();
     }
