@@ -6,7 +6,7 @@ Database migration framework for .NET: raw SQL and C# code migrations, downgrade
 [![License](https://img.shields.io/github/license/curiosus-dev/Curiosus.Migrations)](https://github.com/curiosus-dev/Curiosus.Migrations/blob/main/LICENSE)
 [![NuGet Downloads](https://img.shields.io/nuget/dt/Curiosus.Migrations)](https://www.nuget.org/packages/Curiosus.Migrations)
 [![Coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/curiosus-dev/Curiosus.Migrations/badges/coverage.json)](https://github.com/curiosus-dev/Curiosus.Migrations/actions/workflows/release-packages.yml)
-[![Documentation](https://img.shields.io/badge/docs-GitHub%20Pages-c23926)](https://curiosus-dev.github.io/Curiosus.Migrations/)
+[![Docs](https://github.com/curiosus-dev/Curiosus.Migrations/actions/workflows/docs.yml/badge.svg?branch=main)](https://curiosus-dev.github.io/Curiosus.Migrations/)
 
 > **Renamed:** formerly `Curiosity.Migrations*` by SIIS Ltd. Since 5.0.0 the packages are published as `Curiosus.Migrations*`
 > by [curiosus-dev](https://www.nuget.org/profiles/curiosus-dev). To migrate, replace `Curiosity` with `Curiosus` in package references and code.
