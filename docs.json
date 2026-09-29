@@ -1,4 +1,7 @@
 {
   "title": "Curiosus.Migrations",
-  "tagline": "Database migrations for .NET: SQL scripts and C# code, downgrades, long-running migrations, policies"
+  "tagline": "Database migrations for .NET: SQL scripts and C# code, downgrades, long-running migrations, policies",
+  "algolia": {
+    "siteVerification": "9483E031D2DC3CF7"
+  }
 }
