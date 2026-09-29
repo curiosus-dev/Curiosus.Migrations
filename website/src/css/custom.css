@@ -1,0 +1,24 @@
+/* Synced from https://github.com/curiosus-dev/dotnet-tools, do not edit in place. */
+
+:root {
+    --ifm-color-primary: #c23926;
+    --ifm-color-primary-dark: #af3322;
+    --ifm-color-primary-darker: #a53020;
+    --ifm-color-primary-darkest: #88281b;
+    --ifm-color-primary-light: #d54130;
+    --ifm-color-primary-lighter: #d74a3a;
+    --ifm-color-primary-lightest: #de6a5d;
+    --ifm-code-font-size: 95%;
+    --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
+}
+
+[data-theme='dark'] {
+    --ifm-color-primary: #e0604f;
+    --ifm-color-primary-dark: #dc4b38;
+    --ifm-color-primary-darker: #da412d;
+    --ifm-color-primary-darkest: #bd3322;
+    --ifm-color-primary-light: #e47566;
+    --ifm-color-primary-lighter: #e67f71;
+    --ifm-color-primary-lightest: #ec9e94;
+    --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+}
