@@ -5,7 +5,7 @@
 ### Changed
 
 - **Breaking:** dropped `net8.0` and the `netstandard2.0`, `netstandard2.1`, `netcoreapp3.1`, `net6.0` and `net7.0` targets. Supported targets are `net9.0` and `net10.0`: stay on 5.x for older runtimes.
-- **Breaking:** `Microsoft.Data.SqlClient` 7.1.0 (was 6.1.4): a new major version, see its [release notes](https://github.com/dotnet/SqlClient/tree/main/release-notes/7.0) if your application references SqlClient directly.
+- **Breaking:** `Microsoft.Data.SqlClient` 7.0.0 (was 6.1.4): a new major version, see its [release notes](https://github.com/dotnet/SqlClient/tree/main/release-notes/7.0) if your application references SqlClient directly.
 
 ## [5.0.0] - 2026-09-28
 

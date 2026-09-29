@@ -5,7 +5,7 @@
 ### Changed
 
 - **Breaking:** dropped `net8.0` and the `netstandard2.0`, `netstandard2.1`, `netcoreapp3.1`, `net6.0` and `net7.0` targets. Supported targets are `net9.0` and `net10.0`: stay on 5.x for older runtimes.
-- `Microsoft.Extensions.DependencyInjection`, `.DependencyInjection.Abstractions` and `Logging.Abstractions` 10.0.12.
+- `Microsoft.Extensions.DependencyInjection`, `.DependencyInjection.Abstractions` and `Logging.Abstractions` 10.0.0: the lowest version of the latest major, your application may use any later 10.x.
 
 ## [5.0.0] - 2026-09-28
 
