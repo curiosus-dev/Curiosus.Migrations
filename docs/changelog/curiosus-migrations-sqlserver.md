@@ -1,0 +1,1 @@
+../../src/Curiosus.Migrations.SqlServer/CHANGELOG.md

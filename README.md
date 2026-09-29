@@ -6,7 +6,7 @@ Database migration framework for .NET: raw SQL and C# code migrations, downgrade
 [![License](https://img.shields.io/github/license/curiosus-dev/Curiosus.Migrations)](https://github.com/curiosus-dev/Curiosus.Migrations/blob/main/LICENSE)
 [![NuGet Downloads](https://img.shields.io/nuget/dt/Curiosus.Migrations)](https://www.nuget.org/packages/Curiosus.Migrations)
 [![Coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/curiosus-dev/Curiosus.Migrations/badges/coverage.json)](https://github.com/curiosus-dev/Curiosus.Migrations/actions/workflows/release-packages.yml)
-[![Documentation Status](https://readthedocs.org/projects/curiosity-migrations/badge/?version=latest)](https://curiosity-migrations.readthedocs.io/)
+[![Documentation](https://img.shields.io/badge/docs-GitHub%20Pages-c23926)](https://curiosus-dev.github.io/Curiosus.Migrations/)
 
 > **Renamed:** formerly `Curiosity.Migrations*` by SIIS Ltd. Since 5.0.0 the packages are published as `Curiosus.Migrations*`
 > by [curiosus-dev](https://www.nuget.org/profiles/curiosus-dev). To migrate, replace `Curiosity` with `Curiosus` in package references and code.
@@ -55,29 +55,29 @@ Unlike ORM-specific migration tools, Curiosus.Migrations is database-focused and
 
 ### Migration Types
 
-- **[Script Migrations](https://curiosity-migrations.readthedocs.io/en/latest/features/script_migration/)**: Write raw SQL for direct database access
-    - [Batched Execution](https://curiosity-migrations.readthedocs.io/en/latest/features/script_migration/batches/): Split large scripts into manageable chunks
+- **[Script Migrations](https://curiosus-dev.github.io/Curiosus.Migrations/features/script_migration)**: Write raw SQL for direct database access
+    - [Batched Execution](https://curiosus-dev.github.io/Curiosus.Migrations/features/script_migration/batches): Split large scripts into manageable chunks
     - Full support for database-specific SQL features and optimizations
 
-- **[Code Migrations](https://curiosity-migrations.readthedocs.io/en/latest/features/code_migration/)**: Implement migrations in C# for complex scenarios
-    - [Dependency Injection](https://curiosity-migrations.readthedocs.io/en/latest/features/code_migration/di/): Use your application's services in migrations
-    - [Entity Framework Integration](https://curiosity-migrations.readthedocs.io/en/latest/features/code_migration/ef_integration/): Leverage EF Core when needed
+- **[Code Migrations](https://curiosus-dev.github.io/Curiosus.Migrations/features/code_migration)**: Implement migrations in C# for complex scenarios
+    - [Dependency Injection](https://curiosus-dev.github.io/Curiosus.Migrations/features/code_migration/di): Use your application's services in migrations
+    - [Entity Framework Integration](https://curiosus-dev.github.io/Curiosus.Migrations/features/code_migration/ef_integration): Leverage EF Core when needed
     - Implement custom validation, logging, or business logic during migrations
 
 ### Safety and Control
 
-- **[Policies](https://curiosity-migrations.readthedocs.io/en/latest/basics/#migration-policies)**: Control which migrations run in different environments
-- **[Dependencies](https://curiosity-migrations.readthedocs.io/en/latest/features/dependencies/)**: Specify explicit requirements between migrations
-- **[Downgrade Migrations](https://curiosity-migrations.readthedocs.io/en/latest/features/downgrade/)**: Safely roll back changes when needed
-- **[Transactions](https://curiosity-migrations.readthedocs.io/en/latest/features/transactions/)**: Configure transaction behavior per migration
+- **[Policies](https://curiosus-dev.github.io/Curiosus.Migrations/basics#migration-policies)**: Control which migrations run in different environments
+- **[Dependencies](https://curiosus-dev.github.io/Curiosus.Migrations/features/dependencies)**: Specify explicit requirements between migrations
+- **[Downgrade Migrations](https://curiosus-dev.github.io/Curiosus.Migrations/features/downgrade)**: Safely roll back changes when needed
+- **[Transactions](https://curiosus-dev.github.io/Curiosus.Migrations/features/transactions)**: Configure transaction behavior per migration
 - **Long-running vs Short-running**: Separate quick schema changes from data-intensive operations
 
 ### Extensibility
 
-- **[Migration Providers](https://curiosity-migrations.readthedocs.io/en/latest/features/migration_providers/)**: Source migrations from files, embedded resources, etc.
-- **[Variables](https://curiosity-migrations.readthedocs.io/en/latest/features/variables/)**: Dynamic value substitution in migrations
-- **[Pre-migrations](https://curiosity-migrations.readthedocs.io/en/latest/features/pre_migrations/)**: Run setup scripts before main migrations
-- **[Custom Journal](https://curiosity-migrations.readthedocs.io/en/latest/features/journal/)**: Configure how applied migrations are tracked
+- **[Migration Providers](https://curiosus-dev.github.io/Curiosus.Migrations/features/migration_providers)**: Source migrations from files, embedded resources, etc.
+- **[Variables](https://curiosus-dev.github.io/Curiosus.Migrations/features/variables)**: Dynamic value substitution in migrations
+- **[Pre-migrations](https://curiosus-dev.github.io/Curiosus.Migrations/features/pre_migrations)**: Run setup scripts before main migrations
+- **[Custom Journal](https://curiosus-dev.github.io/Curiosus.Migrations/features/journal)**: Configure how applied migrations are tracked
 
 ## Quick start
 
@@ -114,7 +114,7 @@ if (result.IsSuccessfully)
 }
 ```
 
-Get started quickly with the [**Quick Start Guide**](https://curiosity-migrations.readthedocs.io/en/latest/quickstart/) or dive into [**Core Concepts**](https://curiosity-migrations.readthedocs.io/en/latest/basics/).
+Get started quickly with the [**Quick Start Guide**](https://curiosus-dev.github.io/Curiosus.Migrations/quickstart) or dive into [**Core Concepts**](https://curiosus-dev.github.io/Curiosus.Migrations/basics).
 
 ## Supported Databases
 
@@ -122,13 +122,13 @@ Get started quickly with the [**Quick Start Guide**](https://curiosity-migration
   <tbody>
     <tr>
       <td align="center" valign="middle">
-        <img src="https://raw.githubusercontent.com/curiosus-dev/Curiosus.Migrations/main/docs/images/postgresql.png" width="200">
-        <br>
+        <img src="https://raw.githubusercontent.com/curiosus-dev/Curiosus.Migrations/main/docs/images/postgresql.png" width="200" />
+        <br />
         <b>PostgreSQL</b>
       </td>
       <td align="center" valign="middle">
-        <img src="https://raw.githubusercontent.com/curiosus-dev/Curiosus.Migrations/main/docs/images/sqlserver.svg" width="200">
-        <br>
+        <img src="https://raw.githubusercontent.com/curiosus-dev/Curiosus.Migrations/main/docs/images/sqlserver.svg" width="200" />
+        <br />
         <b>SQL Server</b>
       </td>
     </tr>
@@ -202,7 +202,7 @@ Support for additional databases can be added through contributions.
   </tbody>
 </table>
 
-For more detailed comparisons, see [The Philosophy Behind Curiosus.Migrations](https://curiosity-migrations.readthedocs.io/en/latest/philosophy/).
+For more detailed comparisons, see [The Philosophy Behind Curiosus.Migrations](https://curiosus-dev.github.io/Curiosus.Migrations/philosophy).
 
 ## Available packages
 
