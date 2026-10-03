@@ -60,8 +60,10 @@ For SQL script migrations, create matching `.up.sql` and `.down.sql` files:
 - **Naming Convention**: 
   - Upgrade: `<version>.up.sql` or `<version>.sql`
   - Downgrade: `<version>.down.sql`
-  - The [directives](./script_migration/index.md#directives) of the upgrade script (for example `TRANSACTION = OFF`)
-    apply to the downgrade script too
+  - The downgrade script inherits the `TRANSACTION` [directive](./script_migration/index.md#directives) of the
+    upgrade script unless it declares its own; `LONG-RUNNING` and `DEPENDENCIES` come from the upgrade script
+  - Code migrations override `IDowngradeMigration.IsDowngradeTransactionRequired` to run the downgrade with a
+    different transaction setting than the upgrade
 
 - **Example File Structure**:
   ```

@@ -32,9 +32,9 @@ CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_users_email ON users (email);
 In this example, the transaction is disabled for the SQL script by using the `TRANSACTION = OFF` directive.
 
 The directive is a line of its own, anywhere in the script; spaces are optional (`--CURIOSUS:TRANSACTION=OFF`) and
-names and values are case-insensitive. A migration has one transaction setting for both directions: for a migration
-with `.up.sql` and `.down.sql` scripts it is taken from the upgrade script, and a warning is logged when the downgrade
-script declares a different one.
+names and values are case-insensitive. The transaction is set per direction: a `.down.sql` script inherits the setting
+of its `.up.sql` script unless it declares its own `TRANSACTION` directive, and a code migration can override
+`IDowngradeMigration.IsDowngradeTransactionRequired` (by default the same as `IsTransactionRequired`).
 
 All [batches](./script_migration/batches.md) of a script run in the transaction of the migration.
 
