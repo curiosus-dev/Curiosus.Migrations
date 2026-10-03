@@ -14,9 +14,9 @@ Database migration framework for .NET: raw SQL and C# code migrations, downgrade
 
 ## Why use it
 
-Curiosus.Migrations is a powerful, flexible database migration framework for .NET and .NET Core applications that gives you precise control over how your database evolves. It combines the performance and control of raw SQL with the flexibility of C# code migrations, all wrapped in a robust, enterprise-ready migration system.
+Curiosus.Migrations is a database migration framework for .NET (`net9.0` and `net10.0`; stay on 5.x for older runtimes) that gives you precise control over how your database evolves. It keeps raw SQL scripts and C# code migrations in one ordered history, so a schema change and the data migration that goes with it are versioned, applied and rolled back together.
 
-Unlike ORM-specific migration tools, Curiosus.Migrations is database-focused and designed for scenarios where you need fine-grained control over migration execution, especially for large production databases where performance and safety are critical.
+Unlike ORM-specific migration tools, Curiosus.Migrations is database-focused and designed for scenarios where you need fine-grained control over migration execution, especially for large production databases where heavy data migrations must not block a deployment.
 
 <table>
   <tr>
@@ -26,13 +26,13 @@ Unlike ORM-specific migration tools, Curiosus.Migrations is database-focused and
     </td>
     <td width="50%" valign="top">
       <h3>🚀 Production-Ready</h3>
-      <p>Built for enterprise applications with safety features, long-running migration support, and granular policies to control what runs in each environment.</p>
+      <p>Long-running migration support and policies that decide what runs in each environment: quick schema changes on deployment, heavy data migrations separately.</p>
     </td>
   </tr>
   <tr>
     <td width="50%" valign="top">
       <h3>🔄 Bidirectional</h3>
-      <p>First-class support for downgrade migrations enables safe rollbacks when deployments don't go as planned.</p>
+      <p>Downgrade scripts and code migrations roll the database back to a target version when a deployment doesn't go as planned.</p>
     </td>
     <td width="50%" valign="top">
       <h3>📊 Progressive Migrations</h3>
@@ -62,7 +62,7 @@ Unlike ORM-specific migration tools, Curiosus.Migrations is database-focused and
 - **[Code Migrations](https://curiosus-dev.github.io/Curiosus.Migrations/features/code_migration)**: Implement migrations in C# for complex scenarios
     - [Dependency Injection](https://curiosus-dev.github.io/Curiosus.Migrations/features/code_migration/di): Use your application's services in migrations
     - [Entity Framework Integration](https://curiosus-dev.github.io/Curiosus.Migrations/features/code_migration/ef_integration): Leverage EF Core when needed
-    - Implement custom validation, logging, or business logic during migrations
+    - Any C# logic: data transformations, calls to your services, batched updates
 
 ### Safety and Control
 
@@ -95,26 +95,44 @@ dotnet add package Curiosus.Migrations.SqlServer
 
 ### Basic Setup
 
-```csharp
-// Configure the migration engine
-var builder = new MigrationEngineBuilder(services)
-    .UseScriptMigrations().FromDirectory("./Migrations")  // Add SQL migrations
-    .UseCodeMigrations().FromAssembly(Assembly.GetExecutingAssembly())  // Add code migrations
-    .ConfigureForPostgreSql("Host=localhost;Database=myapp;Username=postgres;Password=secret")
-    .UseUpgradeMigrationPolicy(MigrationPolicy.AllAllowed);
+Put SQL scripts named by version into a directory: `1.0-create_users.sql`, `1.1.up.sql` with its `1.1.down.sql`, and so on. Then configure and run the engine:
 
-// Build and run the engine
+```csharp
+using System.Reflection;
+using Curiosus.Migrations;
+using Curiosus.Migrations.PostgreSQL;
+
+var builder = new MigrationEngineBuilder();
+
+// UseScriptMigrations() and UseCodeMigrations() return the providers, not the builder: configure them separately
+builder.UseScriptMigrations().FromDirectory("./Migrations");
+builder.UseCodeMigrations().FromAssembly(Assembly.GetExecutingAssembly());
+builder.ConfigureForPostgreSql("Host=localhost;Database=myapp;Username=postgres;Password=secret");
+builder.UseUpgradeMigrationPolicy(MigrationPolicy.AllAllowed);
+
 var migrationEngine = builder.Build();
 var result = await migrationEngine.UpgradeDatabaseAsync();
 
-// Check results
-if (result.IsSuccessfully)
+if (!result.IsSuccessfully)
 {
-    Console.WriteLine($"Successfully migrated");
+    throw new InvalidOperationException(
+        $"Migration {result.FailedMigration?.Version} failed: {result.ErrorCode} {result.ErrorMessage}",
+        result.Exception);
 }
+
+Console.WriteLine($"Applied {result.AppliedMigrations.Count} migrations");
 ```
 
+The engine creates the database and the migration history table when they are missing. A complete runnable example with script, code and downgrade migrations is in [samples/Curiosus.Migrations.Sample](https://github.com/curiosus-dev/Curiosus.Migrations/tree/main/samples/Curiosus.Migrations.Sample).
+
 Get started quickly with the [**Quick Start Guide**](https://curiosus-dev.github.io/Curiosus.Migrations/quickstart) or dive into [**Core Concepts**](https://curiosus-dev.github.io/Curiosus.Migrations/basics).
+
+### Running in production
+
+> **No concurrency lock yet.** The engine doesn't lock the database while it migrates, so two instances starting at
+> the same time can apply the same migration twice or fail on the journal. Until
+> [#32](https://github.com/curiosus-dev/Curiosus.Migrations/issues/32) lands, run migrations from one place: a Kubernetes
+> Job or init container, a deployment pipeline step, or the startup of a single replica.
 
 ## Supported Databases
 
@@ -135,74 +153,36 @@ Get started quickly with the [**Quick Start Guide**](https://curiosus-dev.github
   </tbody>
 </table>
 
-Support for additional databases can be added through contributions.
+MySQL/MariaDB ([#37](https://github.com/curiosus-dev/Curiosus.Migrations/issues/37)) and SQLite ([#38](https://github.com/curiosus-dev/Curiosus.Migrations/issues/38)) are planned for v7, after the engine rework that makes a new database a small dialect ([#36](https://github.com/curiosus-dev/Curiosus.Migrations/issues/36)). A custom `IMigrationConnection` can add any other database.
 
 ## Comparing with Alternatives
 
-<table>
-  <thead>
-    <tr>
-      <th>Feature</th>
-      <th>Curiosus.Migrations</th>
-      <th>EF Core Migrations</th>
-      <th>FluentMigrator</th>
-      <th>DbUp</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>Direct SQL Control</td>
-      <td>✅ Full</td>
-      <td>⚠️ Generated</td>
-      <td>⚠️ Generated</td>
-      <td>✅ Full</td>
-    </tr>
-    <tr>
-      <td>Code Migrations</td>
-      <td>✅ Native</td>
-      <td>⚠️ Limited</td>
-      <td>⚠️ Via API</td>
-      <td>❌ No</td>
-    </tr>
-    <tr>
-      <td>Downgrade Support</td>
-      <td>✅ First-class</td>
-      <td>⚠️ Limited</td>
-      <td>⚠️ Limited</td>
-      <td>❌ No</td>
-    </tr>
-    <tr>
-      <td>Long-running Migrations</td>
-      <td>✅ Optimized</td>
-      <td>❌ No</td>
-      <td>❌ No</td>
-      <td>❌ No</td>
-    </tr>
-    <tr>
-      <td>Migration Policies</td>
-      <td>✅ Configurable</td>
-      <td>❌ No</td>
-      <td>❌ No</td>
-      <td>❌ No</td>
-    </tr>
-    <tr>
-      <td>DI Support</td>
-      <td>✅ Native</td>
-      <td>⚠️ Limited</td>
-      <td>⚠️ Limited</td>
-      <td>⚠️ Basic</td>
-    </tr>
-    <tr>
-      <td>Best For</td>
-      <td>Enterprise apps, complex migrations, performance-critical systems</td>
-      <td>Simple CRUD apps with EF Core</td>
-      <td>Cross-database projects</td>
-      <td>Simple script runners</td>
-    </tr>
-  </tbody>
-</table>
+As of October 2026. ✅ supported, ⚠️ partly or with caveats, ❌ not supported, 💰 paid editions only.
 
-For more detailed comparisons, see [The Philosophy Behind Curiosus.Migrations](https://curiosus-dev.github.io/Curiosus.Migrations/philosophy).
+| | Curiosus.Migrations | EF Core Migrations | FluentMigrator | DbUp | grate | Flyway | Liquibase |
+|---|---|---|---|---|---|---|---|
+| Migrations written as | SQL + C# code | C# generated from the EF model (+ raw SQL) | Fluent C# API (+ raw SQL) | SQL (+ `IScript` code) | SQL | SQL (+ Java) | XML/YAML/JSON/SQL changelogs |
+| Databases | PostgreSQL, SQL Server | Any EF Core relational provider | 6 | 7 | 5 | 20+ | 50+ |
+| Downgrade / rollback | ✅ Hand-written, free | ✅ Generated `Down()` | ✅ `Down()`, auto-reversing | ❌ | ❌ | 💰 Undo | ✅ (targeted rollback 💰) |
+| Long-running vs short-running policies | ✅ | ❌ | ⚠️ Tags, profiles | ⚠️ Script filters | ⚠️ Environment scripts | ⚠️ Cherry-pick 💰 | ⚠️ Contexts, labels |
+| Dependencies between migrations | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ⚠️ Changelog order |
+| C# migrations with DI | ✅ | ⚠️ No DI in migrations | ✅ | ⚠️ `IScript` | ❌ | ❌ | ❌ |
+| Concurrency lock | ❌ [#32](https://github.com/curiosus-dev/Curiosus.Migrations/issues/32) | ✅ Since EF Core 9 | ❌ | ❌ | Not documented | ✅ | ✅ |
+| Checksums, drift detection | ❌ [#33](https://github.com/curiosus-dev/Curiosus.Migrations/issues/33) | ⚠️ Pending model changes check | ❌ | ❌ | ✅ | ✅ (drift report 💰) | ✅ (drift 💰) |
+| Repeatable migrations | ❌ [#39](https://github.com/curiosus-dev/Curiosus.Migrations/issues/39) | ❌ | ⚠️ Maintenance stages | ✅ | ✅ | ✅ | ✅ |
+| CLI, dry-run, SQL preview | ❌ [#40](https://github.com/curiosus-dev/Curiosus.Migrations/issues/40), [#42](https://github.com/curiosus-dev/Curiosus.Migrations/issues/42) | ✅ `dotnet ef`, bundles, scripts | ✅ `dotnet-fm` | ⚠️ Library | ✅ | ✅ | ✅ |
+| License | MIT | MIT | Apache-2.0 | MIT | MIT | Apache-2.0 core, paid editions | FSL core, paid editions |
+
+The gaps are planned for v7, see the [roadmap](https://github.com/curiosus-dev/Curiosus.Migrations/issues/44). Evolve
+had checksums and locking but has had no stable release since 3.2.0 (June 2023); RoundhousE is superseded by grate.
+
+**Choose Curiosus.Migrations** when you mix hand-tuned SQL with C# data migrations on PostgreSQL or SQL Server, need
+heavy backfills kept out of the deployment path, and want free downgrades. **Choose something else** when your app is
+EF Core-centric with one schema owner (EF Core Migrations), you target many database engines or want a fluent schema DSL
+(FluentMigrator), you only need forward-only SQL scripts (DbUp, or grate with hash checks and a CLI), or a DBA-led team
+needs compliance and drift reports (Flyway, Liquibase).
+
+For a detailed comparison, see [The Philosophy Behind Curiosus.Migrations](https://curiosus-dev.github.io/Curiosus.Migrations/philosophy#comparison-to-net-alternatives).
 
 ## Available packages
 

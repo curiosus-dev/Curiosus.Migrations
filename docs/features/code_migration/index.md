@@ -85,7 +85,7 @@ public class AddUsersTableMigration : CodeMigration
     // Define the migration version - required
     public override MigrationVersion Version => new MigrationVersion(1, 0);
 
-    // Provide a descriptive comment - required
+    // Provide a descriptive comment saved to the journal - may be null
     public override string? Comment => "Add Users table";
 
     // Implement the upgrade logic - required
@@ -144,15 +144,19 @@ var services = new ServiceCollection();
 services.AddTransient<IDataService, DataService>();
 
 // Build the migration engine
-var builder = new MigrationEngineBuilder(services)
-    .UseCodeMigrations()
-    .FromAssembly(typeof(AddUsersTableMigration).Assembly) // Register all migrations in the assembly
-    .ConfigureForPostgreSql("YourConnectionString");
+var builder = new MigrationEngineBuilder(services);
+builder.UseCodeMigrations()
+    .FromAssembly(typeof(AddUsersTableMigration).Assembly); // Register all migrations in the assembly
+builder.ConfigureForPostgreSql("YourConnectionString");
 
 // Build and run the migration engine
 var migrationEngine = builder.Build();
 await migrationEngine.UpgradeDatabaseAsync();
 ```
+
+An exception thrown from `UpgradeAsync` fails the run: the result has `ErrorCode = MigratingError`, the message and
+the `Exception`. Throw `new MigrationException(errorCode, message)` (or with an inner exception) to fail with
+another `MigrationErrorCode`.
 
 ## Executing SQL Commands in Code Migrations
 
@@ -162,8 +166,12 @@ Code migrations allow you to execute SQL commands directly within your C# code. 
 
 - **ExecuteNonQuerySqlAsync** - Executes a SQL script with DDL or DML commands
 - **ExecuteScalarSqlAsync** - Executes a SQL script and returns a scalar value
-- **ExecuteNonQuerySqlWithoutInitialCatalogAsync** - Executes a SQL script on the default database
+- **ExecuteNonQuerySqlWithoutInitialCatalogAsync** - Executes a SQL script on the default database (`postgres` for PostgreSQL, `master` or the configured default database for SQL Server)
 - **ExecuteScalarSqlWithoutInitialCatalogAsync** - Executes a SQL query with returned value on the default database
+
+`ExecuteNonQuerySqlAsync` and `ExecuteScalarSqlAsync` run in the transaction of the migration. For other database
+access (ADO.NET commands, Dapper, Entity Framework) use `MigrationConnection.Connection` and pass the `transaction`
+argument of `UpgradeAsync` yourself: SQL Server requires commands to be attached to the pending transaction.
 
 ### Executing SQL Commands with Parameters
 
@@ -212,7 +220,7 @@ public override async Task UpgradeAsync(DbTransaction? transaction = null, Cance
 
 ### SQL Command Execution Without Database Context
 
-In some cases, you may need to execute commands without specifying the initial catalog (database name):
+In some cases, you may need to execute commands without specifying the initial catalog (database name). This example is for SQL Server:
 
 ```csharp
 public override async Task UpgradeAsync(DbTransaction? transaction = null, CancellationToken cancellationToken = default)
@@ -237,7 +245,12 @@ public override async Task UpgradeAsync(DbTransaction? transaction = null, Cance
 
 ### Long-Running SQL Operations
 
-For operations that may take a long time, such as mass data updates, you can use the `MassUpdateCodeMigrationBase` class:
+For operations that may take a long time, such as mass data updates, you can use the `MassUpdateCodeMigrationBase` class
+of the `Curiosus.Migrations.Utils` package (namespace `Curiosus.Migrations.Utils`). It marks the migration as
+long-running and without a transaction, and runs the update in steps, each in its own transaction, with a delay
+between them. The query selects the next rows by `id > @id` (the last id of the previous step, `0` at the start) and
+returns the ids it updated (`bigint`); the run ends when a step returns no rows. Use `>`, not `>=`: with `>=` the last
+row of a step is selected again on every step and the update never ends.
 
 ```csharp
 public class UpdateUserDataMigration : MassUpdateCodeMigrationBase

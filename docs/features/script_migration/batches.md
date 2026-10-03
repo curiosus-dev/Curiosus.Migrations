@@ -48,8 +48,11 @@ Executing migration's batch #1 "Add Indexes"
 
 ### Important Notes
 
-- Batches within a migration are executed in the order they appear in the script.
-- Each batch is processed as a single unit and executed within the same transaction context (if transactions are enabled for the migration).
+- Batches within a migration are executed in the order they appear in the script, each as a separate command.
+- All batches of a migration run in the transaction of the migration (if transactions are enabled for the migration). Without a transaction, a failed batch leaves the previous ones applied, and the whole script runs again on the next start.
+- SQL before the first `--BATCH:` marker is a batch of its own.
 - Batch names are optional but recommended for better logging and debugging.
 - If multiple batches exist in a script, their execution will be logged individually.
 - Spaces around the `--BATCH:` marker are ignored (both `--BATCH:` and `-- BATCH:` are valid).
+- The marker is found anywhere in the script, string literals included, so don't use the `--BATCH:` text in your SQL for anything else.
+- SQL Server `GO` separators are not supported (`GO` is a command of SSMS and `sqlcmd`, not of SQL Server): use `--BATCH:` instead, for example to put `CREATE PROCEDURE` in a batch of its own.

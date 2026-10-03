@@ -17,15 +17,15 @@ dotnet add package Curiosus.Migrations.SqlServer
 using Curiosus.Migrations;
 using Curiosus.Migrations.SqlServer;
 
-var engine = new MigrationEngineBuilder(services)
-    .UseScriptMigrations().FromDirectory("./Migrations")
-    .UseCodeMigrations().FromAssembly(typeof(Program).Assembly)
-    .ConfigureForSqlServer(
-        "Server=localhost;Database=myapp;User Id=sa;Password=secret;TrustServerCertificate=True",
-        schemaName: "dbo",
-        readCommittedSnapshot: true)
-    .UseUpgradeMigrationPolicy(MigrationPolicy.AllAllowed)
-    .Build();
+var builder = new MigrationEngineBuilder(services);
+builder.UseScriptMigrations().FromDirectory("./Migrations"); // returns the provider, not the builder
+builder.UseCodeMigrations().FromAssembly(typeof(Program).Assembly);
+builder.ConfigureForSqlServer(
+    "Server=localhost;Database=myapp;User Id=sa;Password=secret;TrustServerCertificate=True",
+    schemaName: "dbo",
+    readCommittedSnapshot: true);
+builder.UseUpgradeMigrationPolicy(MigrationPolicy.AllAllowed);
+var engine = builder.Build();
 
 var result = await engine.UpgradeDatabaseAsync(cancellationToken);
 ```

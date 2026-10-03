@@ -27,12 +27,27 @@ Downgrade migrations serve several important purposes:
 
 When you execute a downgrade operation:
 
-1. The migration engine identifies which migrations need to be rolled back (those with versions higher than the target)
+1. The migration engine identifies which migrations need to be rolled back: applied migrations with versions higher than the target
 2. It sorts these migrations in descending order (newest to oldest)
-3. For each migration, it executes the corresponding downgrade logic
-4. After successfully downgrading each migration, it removes the entry from the migration journal
+3. For each migration, it executes the corresponding downgrade logic, in the transaction of the migration unless it disables it
+4. After successfully downgrading each migration, it removes the entry from the migration journal in the same transaction
 
 This ensures the database returns to the desired previous state in an orderly manner.
+
+Things to know before running a downgrade:
+
+- The target version is required and must be one of the available migrations: `DowngradeDatabaseAsync` throws
+  `InvalidOperationException` without it, and `Build()` throws when no migration has this version. To revert every
+  migration, keep a first migration (for example an empty `0.sql`) to downgrade to.
+- The downgrade policy is `AllForbidden` by default: set it with `UseDowngradeMigrationPolicy`. Migrations not allowed
+  by the policy are skipped and returned in `SkippedByPolicyMigrations`.
+- Only applied migrations that are available to the engine are reverted: journal entries without a matching migration
+  are skipped.
+- The plan is not validated up front: when a migration in the middle has no downgrade (no `.down.sql` script, or a code
+  migration without `IDowngradeMigration`), the run fails at it with `MigrationErrorCode.MigrationNotFound`, and the
+  migrations after it in the plan stay reverted. Check that every migration you may revert has a downgrade
+  ([#31](https://github.com/curiosus-dev/Curiosus.Migrations/issues/31)).
+- [Pre-migrations](./pre_migrations.md) run before downgrades too.
 
 ## Implementation Options
 
@@ -45,6 +60,10 @@ For SQL script migrations, create matching `.up.sql` and `.down.sql` files:
 - **Naming Convention**: 
   - Upgrade: `<version>.up.sql` or `<version>.sql`
   - Downgrade: `<version>.down.sql`
+  - The downgrade script inherits the `TRANSACTION` [directive](./script_migration/index.md#directives) of the
+    upgrade script unless it declares its own; `LONG-RUNNING` and `DEPENDENCIES` come from the upgrade script
+  - Code migrations override `IDowngradeMigration.IsDowngradeTransactionRequired` to run the downgrade with a
+    different transaction setting than the upgrade
 
 - **Example File Structure**:
   ```
@@ -155,7 +174,7 @@ public class SplitNameFieldsMigration : CodeMigration, IDowngradeMigration
         await MigrationConnection.ExecuteNonQuerySqlAsync(@"
             ALTER TABLE Users ADD FirstName VARCHAR(100);
             ALTER TABLE Users ADD LastName VARCHAR(100);
-        ", transaction, cancellationToken);
+        ", null, cancellationToken);
         
         // Split existing data
         await MigrationConnection.ExecuteNonQuerySqlAsync(@"
@@ -165,18 +184,18 @@ public class SplitNameFieldsMigration : CodeMigration, IDowngradeMigration
                 LastName = SUBSTRING(FullName FROM POSITION(' ' IN FullName) + 1)
             WHERE 
                 FullName IS NOT NULL AND FullName != '';
-        ", transaction, cancellationToken);
+        ", null, cancellationToken);
         
         // Make the new columns non-nullable
         await MigrationConnection.ExecuteNonQuerySqlAsync(@"
             ALTER TABLE Users ALTER COLUMN FirstName SET NOT NULL;
             ALTER TABLE Users ALTER COLUMN LastName SET NOT NULL;
-        ", transaction, cancellationToken);
+        ", null, cancellationToken);
         
         // Drop the original column
         await MigrationConnection.ExecuteNonQuerySqlAsync(@"
             ALTER TABLE Users DROP COLUMN FullName;
-        ", transaction, cancellationToken);
+        ", null, cancellationToken);
     }
     
     public async Task DowngradeAsync(DbTransaction? transaction = null, 
@@ -185,25 +204,25 @@ public class SplitNameFieldsMigration : CodeMigration, IDowngradeMigration
         // Recreate the original column
         await MigrationConnection.ExecuteNonQuerySqlAsync(@"
             ALTER TABLE Users ADD FullName VARCHAR(200);
-        ", transaction, cancellationToken);
+        ", null, cancellationToken);
         
         // Combine the split data
         await MigrationConnection.ExecuteNonQuerySqlAsync(@"
             UPDATE Users 
             SET FullName = CONCAT(FirstName, ' ', LastName)
             WHERE FirstName IS NOT NULL OR LastName IS NOT NULL;
-        ", transaction, cancellationToken);
+        ", null, cancellationToken);
         
         // Make the original column non-nullable
         await MigrationConnection.ExecuteNonQuerySqlAsync(@"
             ALTER TABLE Users ALTER COLUMN FullName SET NOT NULL;
-        ", transaction, cancellationToken);
+        ", null, cancellationToken);
         
         // Drop the split columns
         await MigrationConnection.ExecuteNonQuerySqlAsync(@"
             ALTER TABLE Users DROP COLUMN FirstName;
             ALTER TABLE Users DROP COLUMN LastName;
-        ", transaction, cancellationToken);
+        ", null, cancellationToken);
     }
 }
 ```
@@ -215,17 +234,15 @@ To downgrade your database to a specific version:
 1. **Configure the Migration Engine**:
 
 ```csharp
-var builder = new MigrationEngineBuilder(services)
-    // Add migration sources
-    .UseCodeMigrations().FromAssembly(Assembly.GetExecutingAssembly())
-    .UseScriptMigrations().FromDirectory("./Migrations")
-    
+var builder = new MigrationEngineBuilder(services);
+// Add migration sources
+builder.UseCodeMigrations().FromAssembly(Assembly.GetExecutingAssembly());
+builder.UseScriptMigrations().FromDirectory("./Migrations");
+builder
     // Configure database connection
     .ConfigureForPostgreSql("YourConnectionString")
-    
     // Set downgrade policy
     .UseDowngradeMigrationPolicy(MigrationPolicy.AllAllowed)
-    
     // Specify target version to downgrade to
     .SetUpTargetVersion(new MigrationVersion(1, 5));
 
@@ -237,14 +254,17 @@ var migrationEngine = builder.Build();
 ```csharp
 var result = await migrationEngine.DowngradeDatabaseAsync();
 
-if (result.IsSuccessful)
+if (result.IsSuccessfully)
 {
-    Console.WriteLine($"Successfully downgraded from {result.PreviousVersion} to {result.CurrentVersion}");
-    Console.WriteLine($"Rolled back {result.AppliedMigrations.Count} migrations");
+    // For a downgrade, AppliedMigrations lists the reverted migrations
+    foreach (var migration in result.AppliedMigrations)
+    {
+        Console.WriteLine($"Reverted {migration.Version} ({migration.Comment})");
+    }
 }
 else
 {
-    Console.WriteLine($"Downgrade failed: {result.ErrorMessage}");
+    Console.WriteLine($"Downgrade failed at {result.FailedMigration?.Version}: {result.ErrorMessage}");
 }
 ```
 
@@ -270,7 +290,7 @@ The following operations require special care during downgrades:
 
 2. **Backup Before Downgrading**: Create a database backup before executing any downgrade operation in production.
 
-   > You can make backups with pre-migration feature of `Curiosus.Migrations`.  
+   > Use the backup tools of your database: `Curiosus.Migrations` doesn't make backups.
 
 3. **Version in Small Increments**: Smaller, more focused migrations are easier to downgrade reliably.
 
@@ -319,7 +339,7 @@ public class SafeColumnRemovalMigration : CodeMigration, IDowngradeMigration
                 SettingValue TEXT,
                 PRIMARY KEY (UserId, SettingKey)
             );
-        ", transaction, cancellationToken);
+        ", null, cancellationToken);
         
         // 2. Migrate data
         await MigrationConnection.ExecuteNonQuerySqlAsync(@"
@@ -332,12 +352,12 @@ public class SafeColumnRemovalMigration : CodeMigration, IDowngradeMigration
                 Users
             WHERE 
                 Settings IS NOT NULL AND Settings != '';
-        ", transaction, cancellationToken);
+        ", null, cancellationToken);
         
         // 3. Remove old column
         await MigrationConnection.ExecuteNonQuerySqlAsync(@"
             ALTER TABLE Users DROP COLUMN Settings;
-        ", transaction, cancellationToken);
+        ", null, cancellationToken);
     }
     
     public async Task DowngradeAsync(DbTransaction? transaction = null, 
@@ -346,7 +366,7 @@ public class SafeColumnRemovalMigration : CodeMigration, IDowngradeMigration
         // 1. Recreate old column
         await MigrationConnection.ExecuteNonQuerySqlAsync(@"
             ALTER TABLE Users ADD COLUMN Settings JSONB;
-        ", transaction, cancellationToken);
+        ", null, cancellationToken);
         
         // 2. Migrate data back
         await MigrationConnection.ExecuteNonQuerySqlAsync(@"
@@ -362,12 +382,12 @@ public class SafeColumnRemovalMigration : CodeMigration, IDowngradeMigration
                     UserId
             ) s
             WHERE u.Id = s.UserId;
-        ", transaction, cancellationToken);
+        ", null, cancellationToken);
         
         // 3. Remove new structure
         await MigrationConnection.ExecuteNonQuerySqlAsync(@"
             DROP TABLE UserSettings;
-        ", transaction, cancellationToken);
+        ", null, cancellationToken);
     }
 }
 ```

@@ -16,8 +16,10 @@ dotnet add package Curiosus.Migrations.Utils
 Derive from `MassUpdateCodeMigrationBase`. The base class marks the migration as long-running and turns off the engine transaction. Call `DoMassUpdateAsync` with a query that selects a limited batch where `id > @id` and returns the updated ids. The loop continues until a batch comes back empty.
 
 ```csharp
+using System.Data.Common;
 using Curiosus.Migrations;
 using Curiosus.Migrations.Utils;
+using Microsoft.Extensions.Logging;
 
 public class FillNewResultCodeMigration : MassUpdateCodeMigrationBase
 {
