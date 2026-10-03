@@ -37,6 +37,8 @@ public class SqlServerMigrationConnection : IMigrationConnection
     /// </summary>
     private ILogger? _sqlLogger;
 
+    private SqlTransaction? _transaction;
+
     /// <inheritdoc />
     public string DatabaseName { get; }
 
@@ -117,7 +119,21 @@ public class SqlServerMigrationConnection : IMigrationConnection
     {
         SqlServerGuard.AssertConnection(SqlConnection);
 
-        return SqlConnection!.BeginTransaction();
+        _transaction = SqlConnection!.BeginTransaction();
+
+        return _transaction;
+    }
+
+    // SqlClient, unlike Npgsql, doesn't enlist commands in the pending local transaction of the connection.
+    private SqlCommand CreateCommand(SqlConnection connection)
+    {
+        var command = connection.CreateCommand();
+        if (ReferenceEquals(connection, SqlConnection) && _transaction?.Connection != null)
+        {
+            command.Transaction = _transaction;
+        }
+
+        return command;
     }
 
     /// <inheritdoc />
@@ -231,7 +247,7 @@ public class SqlServerMigrationConnection : IMigrationConnection
         Guard.AssertNotNull(connection, nameof(connection));
         Guard.AssertNotEmpty(sqlQuery, nameof(sqlQuery));
 
-        var command = connection.CreateCommand();
+        var command = CreateCommand(connection);
         command.CommandText = sqlQuery;
 
         return ExecuteScalarCommandInternalAsync(
@@ -293,7 +309,7 @@ public class SqlServerMigrationConnection : IMigrationConnection
         Guard.AssertNotNull(connection, nameof(connection));
         Guard.AssertNotEmpty(commandText, nameof(commandText));
 
-        var command = connection.CreateCommand();
+        var command = CreateCommand(connection);
         command.CommandText = commandText;
 
         return ExecuteNonQueryCommandInternalAsync(
@@ -518,7 +534,7 @@ public class SqlServerMigrationConnection : IMigrationConnection
                 }
 
                 var result = new List<MigrationVersion>();
-                using var command = SqlConnection!.CreateCommand();
+                using var command = CreateCommand(SqlConnection!);
                 command.CommandText = $"SELECT version FROM [{schema}].[{MigrationHistoryTableName}]";
 
                 LogCommand(command);
@@ -631,6 +647,7 @@ public class SqlServerMigrationConnection : IMigrationConnection
                 SqlConnection.Dispose();
 
                 SqlConnection = null;
+                _transaction = null;
                 
                 return Task.CompletedTask;
             },

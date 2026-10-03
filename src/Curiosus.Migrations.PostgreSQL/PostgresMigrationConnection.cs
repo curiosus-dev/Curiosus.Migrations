@@ -569,7 +569,6 @@ SELECT EXISTS (
         string? migrationName,
         CancellationToken cancellationToken = default)
     {
-        Guard.AssertNotEmpty(migrationName, nameof(migrationName));
         PostgresqlGuard.AssertConnection(NpgsqlConnection);
 
         var sqlFormat = @"
