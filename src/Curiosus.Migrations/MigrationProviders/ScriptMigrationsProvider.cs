@@ -11,10 +11,25 @@ namespace Curiosus.Migrations;
 /// <summary>
 /// Provide migrations that uses raw sql scripts from specified directories
 /// </summary>
-public partial class ScriptMigrationsProvider : IMigrationsProvider
+public class ScriptMigrationsProvider : IMigrationsProvider
 {
     private static readonly Regex MigrationFileNameRegex = new(
         MigrationConstants.MigrationFileNamePattern,
+        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled);
+
+    // CURIOSITY is the prefix of the package before it was renamed to Curiosus, existing scripts still use it.
+    private static readonly Regex OptionSplitRegex = new(
+        @"(?=--\s*(?:CURIOSUS|CURIOSITY):)",
+        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled);
+
+    private static readonly Regex OptionRegex = new(
+        @"--\s*(?:CURIOSUS|CURIOSITY):\s*([^\s=]+)\s*=\s*(.*?)\s*(?:\n|$)",
+        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled);
+
+    private static readonly Regex BatchSplitRegex = new(@"(?=--\s*BATCH:)", RegexOptions.Compiled);
+
+    private static readonly Regex BatchNameRegex = new(
+        @"--\s*BATCH:\s*(.*)\s*\n(.*)",
         RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled);
 
     private const ScriptIncorrectNamingAction DefaultScriptIncorrectNamingAction = ScriptIncorrectNamingAction.LogToWarn;
@@ -224,11 +239,11 @@ public partial class ScriptMigrationsProvider : IMigrationsProvider
                 var batchIndex = 0;
 
                 // Use positive lookahead to split script into batches.
-                foreach (var batch in BatchSplitRegex().Split(script))
+                foreach (var batch in BatchSplitRegex.Split(script))
                 {
                     if (String.IsNullOrWhiteSpace(batch)) continue;
 
-                    var batchNameMatch = BatchNameRegex().Match(batch);
+                    var batchNameMatch = BatchNameRegex.Match(batch);
                     batches.Add(new ScriptMigrationBatch(
                         batchIndex++,
                         batchNameMatch.Success ? batchNameMatch.Groups[1].Value : null,
@@ -288,11 +303,11 @@ public partial class ScriptMigrationsProvider : IMigrationsProvider
 
         var options = new MigrationOptions();
 
-        foreach (var line in OptionSplitRegex().Split(sourceScript))
+        foreach (var line in OptionSplitRegex.Split(sourceScript))
         {
             if (String.IsNullOrWhiteSpace(line)) continue;
 
-            var optionsMatch = OptionRegex().Match(line);
+            var optionsMatch = OptionRegex.Match(line);
             if (!optionsMatch.Success) continue;
 
             var name = optionsMatch.Groups[1].Value;
@@ -475,17 +490,4 @@ public partial class ScriptMigrationsProvider : IMigrationsProvider
 
         public List<MigrationVersion>? Dependencies { get; set; }
     }
-
-    // CURIOSITY is the prefix of the package before it was renamed to Curiosus, existing scripts still use it.
-    [GeneratedRegex(@"(?=--\s*(?:CURIOSUS|CURIOSITY):)", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
-    private static partial Regex OptionSplitRegex();
-
-    [GeneratedRegex(@"--\s*(?:CURIOSUS|CURIOSITY):\s*([^\s=]+)\s*=\s*(.*?)\s*(?:\n|$)", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
-    private static partial Regex OptionRegex();
-
-    [GeneratedRegex(@"(?=--\s*BATCH:)")]
-    private static partial Regex BatchSplitRegex();
-
-    [GeneratedRegex(@"--\s*BATCH:\s*(.*)\s*\n(.*)", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
-    private static partial Regex BatchNameRegex();
 }
