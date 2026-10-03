@@ -13,6 +13,25 @@ namespace Curiosus.Migrations;
 /// </summary>
 public class ScriptMigrationsProvider : IMigrationsProvider
 {
+    private static readonly Regex MigrationFileNameRegex = new(
+        MigrationConstants.MigrationFileNamePattern,
+        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled);
+
+    // CURIOSITY is the prefix of the package before it was renamed to Curiosus, existing scripts still use it.
+    private static readonly Regex OptionSplitRegex = new(
+        @"(?=--\s*(?:CURIOSUS|CURIOSITY):)",
+        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled);
+
+    private static readonly Regex OptionRegex = new(
+        @"--\s*(?:CURIOSUS|CURIOSITY):\s*([^\s=]+)\s*=\s*(.*?)\s*(?:\n|$)",
+        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled);
+
+    private static readonly Regex BatchSplitRegex = new(@"(?=--\s*BATCH:)", RegexOptions.Compiled);
+
+    private static readonly Regex BatchNameRegex = new(
+        @"--\s*BATCH:\s*(.*)\s*\n(.*)",
+        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled);
+
     private const ScriptIncorrectNamingAction DefaultScriptIncorrectNamingAction = ScriptIncorrectNamingAction.LogToWarn;
 
     private readonly Dictionary<string, ScriptParsingOptions> _absoluteDirectoriesPathParsingOptions;
@@ -98,6 +117,7 @@ public class ScriptMigrationsProvider : IMigrationsProvider
                 throw new ArgumentException($"Directory \"{directoryPath}\" does not exists");
 
             var fileNames = Directory.GetFiles(directoryPath);
+            Array.Sort(fileNames, StringComparer.Ordinal);
 
             var directoryMigrations = GetMigrations(
                 fileNames,
@@ -119,6 +139,7 @@ public class ScriptMigrationsProvider : IMigrationsProvider
             var scriptParsingOptions = keyValuePair.Value;
 
             var resourceFileNames = assembly.GetManifestResourceNames();
+            Array.Sort(resourceFileNames, StringComparer.Ordinal);
 
             var assemblyMigrations = GetMigrations(
                 resourceFileNames,
@@ -161,22 +182,20 @@ public class ScriptMigrationsProvider : IMigrationsProvider
 
         var scripts = new Dictionary<MigrationVersion, MigrationScriptInfo>();
 
-        var regex = new Regex(MigrationConstants.MigrationFileNamePattern, RegexOptions.IgnoreCase);
-
         for (var i = 0; i < fileNames.Count; i++)
         {
             var fileName = fileNames[i];
 
-            if (fileName.ToLower().EndsWith("sql"))
+            if (fileName.EndsWith("sql", StringComparison.OrdinalIgnoreCase))
             {
-                if (!fileName.ToLower().StartsWith(scriptParsingOptions.MigrationNamePrefix.ToLower()))
+                if (!fileName.StartsWith(scriptParsingOptions.MigrationNamePrefix, StringComparison.OrdinalIgnoreCase))
                 {
                     migrationLogger?.LogTrace($"\"{fileName}\" skipped because of incorrect prefix. Prefix \"{scriptParsingOptions.MigrationNamePrefix}\" is expected");
                     continue;
                 }
 
                 var cleanedFileName = getCleanedNameFunc(fileName);
-                var match = regex.Match(cleanedFileName);
+                var match = MigrationFileNameRegex.Match(cleanedFileName);
                 if (!match.Success)
                 {
                     var message = $"\"{fileName}\" has incorrect name for script migration. File must matches this regex pattern - \"{MigrationConstants.MigrationFileNamePattern}\"";
@@ -213,21 +232,18 @@ public class ScriptMigrationsProvider : IMigrationsProvider
                 }
 
                 var script = sqlScriptReadFunc.Invoke(fileName);
-
-                // extract options for current migration
-                scriptInfo.Options = ExtractMigrationOptions(script);
+                var options = ExtractMigrationOptions(script);
 
                 // split into batches
                 var batches = new List<ScriptMigrationBatch>();
-                var batchNameRegex = new Regex(@"--\s*BATCH:\s*(.*)\s*\n(.*)", RegexOptions.IgnoreCase);
                 var batchIndex = 0;
 
                 // Use positive lookahead to split script into batches.
-                foreach (var batch in Regex.Split(script, @"(?=--\s*BATCH:)"))
+                foreach (var batch in BatchSplitRegex.Split(script))
                 {
                     if (String.IsNullOrWhiteSpace(batch)) continue;
 
-                    var batchNameMatch = batchNameRegex.Match(batch);
+                    var batchNameMatch = BatchNameRegex.Match(batch);
                     batches.Add(new ScriptMigrationBatch(
                         batchIndex++,
                         batchNameMatch.Success ? batchNameMatch.Groups[1].Value : null,
@@ -241,6 +257,8 @@ public class ScriptMigrationsProvider : IMigrationsProvider
                             $"There is more than one downgrade script with version {version}");
 
                     scriptInfo.DownScript.AddRange(batches);
+                    scriptInfo.DownOptions = options;
+                    scriptInfo.DownComment = GetComment(match);
                 }
                 else
                 {
@@ -249,12 +267,9 @@ public class ScriptMigrationsProvider : IMigrationsProvider
                             $"There is more than one upgrade script with version {version}");
 
                     scriptInfo.UpScript.AddRange(batches);
+                    scriptInfo.UpOptions = options;
+                    scriptInfo.UpComment = GetComment(match);
                 }
-
-                var comment = match.Groups[9];
-                scriptInfo.Comment = comment.Success
-                    ? comment.Value
-                    : null;
             }
             else
             {
@@ -273,74 +288,72 @@ public class ScriptMigrationsProvider : IMigrationsProvider
             .ToArray();
     }
 
-    private MigrationOptions ExtractMigrationOptions(string sourceScript)
+    private static string? GetComment(Match fileNameMatch)
+    {
+        var comment = fileNameMatch.Groups[9];
+
+        return comment.Success && comment.Value.Length > 0
+            ? comment.Value
+            : null;
+    }
+
+    private static MigrationOptions ExtractMigrationOptions(string sourceScript)
     {
         Guard.AssertNotEmpty(sourceScript, nameof(sourceScript));
 
         var options = new MigrationOptions();
 
-        // CURIOSITY is the prefix of the package before it was renamed to Curiosus, existing scripts still use it.
-        var optionsRegex = new Regex(@"--\s*(?:CURIOSUS|CURIOSITY):\s*(.*)\s*=\s*(.*)\s*\n", RegexOptions.IgnoreCase);
-        foreach (var line in Regex.Split(sourceScript, @"(?=--\s*(?:CURIOSUS|CURIOSITY):)"))
+        foreach (var line in OptionSplitRegex.Split(sourceScript))
         {
             if (String.IsNullOrWhiteSpace(line)) continue;
 
-            var optionsMatch = optionsRegex.Match(line);
+            var optionsMatch = OptionRegex.Match(line);
             if (!optionsMatch.Success) continue;
 
-            switch (optionsMatch.Groups[1].Value.ToUpper())
+            var name = optionsMatch.Groups[1].Value;
+            var rawValue = optionsMatch.Groups[2].Value;
+            var value = rawValue.Trim().TrimEnd(';').ToUpperInvariant();
+
+            switch (name.ToUpperInvariant())
             {
                 case "TRANSACTION":
-                    switch (optionsMatch.Groups[2].Value.ToUpper().Trim().TrimEnd(';'))
+                    options.IsTransactionRequired = value switch
                     {
-                        case "ON":
-                            options.IsTransactionRequired = true;
-                            break;
-                        case "OFF":
-                            options.IsTransactionRequired = false;
-                            break;
-                        default:
-                            throw new InvalidOperationException($"Value \"{optionsMatch.Groups[2].Value}\" is not assignable to the option \"{optionsMatch.Groups[1].Value}\"");
-                    }
-
+                        "ON" => true,
+                        "OFF" => false,
+                        _ => throw new InvalidOperationException($"Value \"{rawValue}\" is not assignable to the option \"{name}\"")
+                    };
                     break;
                 case "LONG-RUNNING":
-                    switch (optionsMatch.Groups[2].Value.ToUpper().Trim().TrimEnd(';'))
+                    options.IsLongRunning = value switch
                     {
-                        case "TRUE":
-                            options.IsLongRunning = true;
-                            break;
-                        case "FALSE":
-                            options.IsLongRunning = false;
-                            break;
-                        default:
-                            throw new InvalidOperationException($"Value \"{optionsMatch.Groups[2].Value}\" is not assignable to the option \"{optionsMatch.Groups[1].Value}\"");
-                    }
-
+                        "TRUE" => true,
+                        "FALSE" => false,
+                        _ => throw new InvalidOperationException($"Value \"{rawValue}\" is not assignable to the option \"{name}\"")
+                    };
                     break;
                 case "DEPENDENCIES":
-                    var migrationDependencies = optionsMatch.Groups[2].Value.ToUpper().Trim().TrimEnd(';');
-                    
-                    if(String.IsNullOrWhiteSpace(migrationDependencies))
-                        throw new InvalidOperationException($"Value \"{optionsMatch.Groups[2].Value}\" is not assignable to the option \"{optionsMatch.Groups[1].Value}\"");
+                    if (String.IsNullOrWhiteSpace(value))
+                        throw new InvalidOperationException($"Value \"{rawValue}\" is not assignable to the option \"{name}\"");
 
-                    var rawVersions = migrationDependencies.Split(',');
-                    var versions = rawVersions
-                        .Select(x => 
-                            MigrationVersion.TryParse(x.Trim(), out var version) 
-                                ? version 
-                                : throw new InvalidOperationException($"Can't parse migration dependency {version}"));
-                    options.Dependencies.AddRange(versions);
+                    options.Dependencies ??= new List<MigrationVersion>();
+                    foreach (var rawVersion in value.Split(','))
+                    {
+                        if (!MigrationVersion.TryParse(rawVersion.Trim(), out var version))
+                            throw new InvalidOperationException($"Can't parse migration dependency \"{rawVersion.Trim()}\"");
+
+                        options.Dependencies.Add(version);
+                    }
 
                     break;
                 default:
-                    throw new InvalidOperationException($"Option \"{optionsMatch.Groups[1].Value}\" is unknown");
+                    throw new InvalidOperationException($"Option \"{name}\" is unknown");
             }
         }
 
         return options;
     }
-    
+
     /// <summary>
     /// Creates script migration. Replace variables placeholders with real values
     /// </summary>
@@ -364,6 +377,34 @@ public class ScriptMigrationsProvider : IMigrationsProvider
         var upScript = migrationScriptInfo.UpScript;
         var downScript = migrationScriptInfo.DownScript;
 
+        // LONG-RUNNING and DEPENDENCIES describe the whole migration: the upgrade script declares them.
+        // TRANSACTION is per direction: the downgrade script inherits the upgrade setting unless it declares its own.
+        var upOptions = migrationScriptInfo.UpOptions ?? new MigrationOptions();
+        var downOptions = migrationScriptInfo.DownOptions ?? new MigrationOptions();
+        if (upOptions.IsLongRunning.HasValue
+            && downOptions.IsLongRunning.HasValue
+            && upOptions.IsLongRunning != downOptions.IsLongRunning)
+        {
+            migrationLogger?.LogWarning(
+                $"LONG-RUNNING directive of the downgrade script of migration {migrationVersion} differs from the upgrade script " +
+                "and is ignored: the upgrade script one applies to the migration");
+        }
+
+        if (upOptions.Dependencies != null
+            && downOptions.Dependencies != null
+            && !upOptions.Dependencies.ToHashSet().SetEquals(downOptions.Dependencies))
+        {
+            migrationLogger?.LogWarning(
+                $"DEPENDENCIES directive of the downgrade script of migration {migrationVersion} differs from the upgrade script " +
+                "and is ignored: the upgrade script one applies to the migration");
+        }
+
+        var isTransactionRequired = upOptions.IsTransactionRequired ?? true;
+        var isLongRunning = upOptions.IsLongRunning ?? downOptions.IsLongRunning ?? false;
+        var dependencies = upOptions.Dependencies ?? downOptions.Dependencies ?? new List<MigrationVersion>();
+
+        var comment = migrationScriptInfo.UpComment ?? migrationScriptInfo.DownComment;
+
         foreach (var keyValuePair in variables)
         {
             foreach (var batch in upScript)
@@ -384,19 +425,22 @@ public class ScriptMigrationsProvider : IMigrationsProvider
                 migrationVersion,
                 upScript,
                 downScript,
-                migrationScriptInfo.Comment,
-                migrationScriptInfo.Options.IsTransactionRequired,
-                migrationScriptInfo.Options.IsLongRunning,
-                migrationScriptInfo.Options.Dependencies)
+                comment,
+                isTransactionRequired,
+                isLongRunning,
+                dependencies)
+            {
+                IsDowngradeTransactionRequired = downOptions.IsTransactionRequired ?? isTransactionRequired
+            }
             : new ScriptMigration(
                 migrationLogger,
                 migrationConnection,
                 migrationVersion,
                 upScript,
-                migrationScriptInfo.Comment,
-                migrationScriptInfo.Options.IsTransactionRequired,
-                migrationScriptInfo.Options.IsLongRunning,
-                migrationScriptInfo.Options.Dependencies);
+                comment,
+                isTransactionRequired,
+                isLongRunning,
+                dependencies);
     }
 
     private struct ScriptParsingOptions
@@ -422,20 +466,28 @@ public class ScriptMigrationsProvider : IMigrationsProvider
     /// </summary>
     private class MigrationScriptInfo
     {
-        public string? Comment { get; set; }
+        public string? UpComment { get; set; }
+
+        public string? DownComment { get; set; }
 
         public List<ScriptMigrationBatch> UpScript { get; } = new();
 
         public List<ScriptMigrationBatch> DownScript { get; } = new();
 
-        public MigrationOptions Options { get; set; } = null!;
+        public MigrationOptions? UpOptions { get; set; }
+
+        public MigrationOptions? DownOptions { get; set; }
     }
 
+    /// <summary>
+    /// Directives of one script; <see langword="null"/> when the script doesn't declare the directive.
+    /// </summary>
     private class MigrationOptions
     {
-        public bool IsTransactionRequired { get; set; } = true;
+        public bool? IsTransactionRequired { get; set; }
 
-        public bool IsLongRunning { get; set; }
-        public List<MigrationVersion> Dependencies { get; set; } = new();
+        public bool? IsLongRunning { get; set; }
+
+        public List<MigrationVersion>? Dependencies { get; set; }
     }
 }

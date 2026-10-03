@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -173,5 +174,207 @@ public class ScriptMigrationsProvider_Should
         migrations[2].IsTransactionRequired.Should().BeTrue();
         migrations[2].IsLongRunning.Should().BeFalse();
         migrations[2].Dependencies.Should().BeEmpty();
+    }
+
+    [Theory]
+    [InlineData("--CURIOSUS:TRANSACTION=OFF\nSELECT 1;")]
+    [InlineData("-- CURIOSUS: TRANSACTION = OFF\nSELECT 1;")]
+    [InlineData("-- curiosus:  transaction  =  off  \r\nSELECT 1;")]
+    [InlineData("SELECT 1;\n-- CURIOSUS: TRANSACTION = OFF")]
+    [InlineData("-- CURIOSITY: TRANSACTION = OFF;\nSELECT 1;")]
+    public void GetMigrations_ScriptDirectives_AcceptSpacesCaseAndLastLine(string script)
+    {
+        using var directory = new TempScriptsDirectory();
+        directory.Write("1.sql", script);
+
+        var migration = GetSingleMigration(directory);
+
+        migration.IsTransactionRequired.Should().BeFalse();
+    }
+
+    [Fact]
+    public void GetMigrations_ScriptDirectives_SpacedFormSetsAllOptions()
+    {
+        using var directory = new TempScriptsDirectory();
+        directory.Write(
+            "2.sql",
+            "-- CURIOSUS: LONG-RUNNING = TRUE\n-- CURIOSUS: DEPENDENCIES = 0.1, 1\nSELECT 1;");
+
+        var migration = GetSingleMigration(directory);
+
+        migration.IsLongRunning.Should().BeTrue();
+        migration.Dependencies.Should().Equal(new MigrationVersion(0, 1), new MigrationVersion(1));
+    }
+
+    [Fact]
+    public void GetMigrations_UnknownDirective_Throws()
+    {
+        using var directory = new TempScriptsDirectory();
+        directory.Write("1.sql", "-- CURIOSUS: UNKNOWN = 1\nSELECT 1;");
+
+        var act = () => GetSingleMigration(directory);
+
+        act.Should().Throw<InvalidOperationException>().WithMessage("*\"UNKNOWN\" is unknown*");
+    }
+
+    [Fact]
+    public void GetMigrations_DownScriptWithoutDirectives_InheritsUpScriptTransactionWithoutWarning()
+    {
+        using var directory = new TempScriptsDirectory();
+        directory.Write("1.up-create_index.sql", "-- CURIOSUS: TRANSACTION = OFF\nCREATE INDEX CONCURRENTLY ix ON t (c);");
+        directory.Write("1.down-drop_index.sql", "DROP INDEX CONCURRENTLY ix;");
+        var logger = new Mock<ILogger>();
+
+        var migration = GetSingleMigration(directory, logger.Object);
+
+        migration.IsTransactionRequired.Should().BeFalse();
+        migration.Should().BeOfType<DowngradeScriptMigration>().Which.IsDowngradeTransactionRequired.Should().BeFalse();
+        migration.Comment.Should().Be("create_index");
+        VerifyWarnings(logger, Times.Never());
+    }
+
+    [Fact]
+    public void GetMigrations_DownScriptDeclaresTransaction_AppliesToDowngradeOnly()
+    {
+        using var directory = new TempScriptsDirectory();
+        directory.Write("1.up.sql", "CREATE INDEX ix ON t (c);");
+        directory.Write("1.down.sql", "-- CURIOSUS: TRANSACTION = OFF\nDROP INDEX CONCURRENTLY ix;");
+        var logger = new Mock<ILogger>();
+
+        var migration = GetSingleMigration(directory, logger.Object);
+
+        migration.IsTransactionRequired.Should().BeTrue();
+        migration.Should().BeOfType<DowngradeScriptMigration>().Which.IsDowngradeTransactionRequired.Should().BeFalse();
+        VerifyWarnings(logger, Times.Never());
+    }
+
+    [Fact]
+    public void GetMigrations_DownScriptDeclaresDifferentLongRunning_UpScriptOneAppliesWithWarning()
+    {
+        using var directory = new TempScriptsDirectory();
+        directory.Write("1.up.sql", "-- CURIOSUS: LONG-RUNNING = TRUE\nSELECT 1;");
+        directory.Write("1.down.sql", "-- CURIOSUS: LONG-RUNNING = FALSE\nSELECT 2;");
+        var logger = new Mock<ILogger>();
+
+        var migration = GetSingleMigration(directory, logger.Object);
+
+        migration.IsLongRunning.Should().BeTrue();
+        VerifyWarnings(logger, Times.Once());
+    }
+
+    [Fact]
+    public void GetMigrations_SameDependenciesInAnotherOrder_NoWarning()
+    {
+        using var directory = new TempScriptsDirectory();
+        directory.Write("3.up.sql", "-- CURIOSUS: DEPENDENCIES = 1, 2\nSELECT 1;");
+        directory.Write("3.down.sql", "-- CURIOSUS: DEPENDENCIES = 2\n-- CURIOSUS: DEPENDENCIES = 1\nSELECT 2;");
+        var logger = new Mock<ILogger>();
+
+        var migration = GetSingleMigration(directory, logger.Object);
+
+        migration.Dependencies.Should().Equal(new MigrationVersion(1), new MigrationVersion(2));
+        VerifyWarnings(logger, Times.Never());
+    }
+
+    [Fact]
+    public void GetMigrations_IncorrectDependency_ErrorNamesIt()
+    {
+        using var directory = new TempScriptsDirectory();
+        directory.Write("3.sql", "-- CURIOSUS: DEPENDENCIES = 1, abc\nSELECT 1;");
+
+        var act = () => GetSingleMigration(directory);
+
+        act.Should().Throw<InvalidOperationException>().WithMessage("*\"abc\"*");
+    }
+
+    [Fact]
+    public void GetMigrations_TurkishCulture_RecognizesLowerCaseDirectives()
+    {
+        using var directory = new TempScriptsDirectory();
+        directory.Write("1.sql", "-- curiosus: transaction = off\n-- curiosus: long-running = true\nSELECT 1;");
+        var culture = CultureInfo.CurrentCulture;
+        CultureInfo.CurrentCulture = new CultureInfo("tr-TR");
+        try
+        {
+            var migration = GetSingleMigration(directory);
+
+            migration.IsTransactionRequired.Should().BeFalse();
+            migration.IsLongRunning.Should().BeTrue();
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = culture;
+        }
+    }
+
+    [Fact]
+    public void GetMigrations_EmptyUpScriptComment_CommentIsTakenFromDownScript()
+    {
+        using var directory = new TempScriptsDirectory();
+        directory.Write("1.up-.sql", "SELECT 1;");
+        directory.Write("1.down-drop_users.sql", "SELECT 2;");
+
+        var migration = GetSingleMigration(directory);
+
+        migration.Comment.Should().Be("drop_users");
+    }
+
+    [Fact]
+    public void GetMigrations_OnlyDownScriptHasComment_CommentIsTakenFromIt()
+    {
+        using var directory = new TempScriptsDirectory();
+        directory.Write("1.up.sql", "SELECT 1;");
+        directory.Write("1.down-comment.sql", "SELECT 2;");
+
+        var migration = GetSingleMigration(directory);
+
+        migration.Comment.Should().Be("comment");
+        migration.IsTransactionRequired.Should().BeTrue();
+    }
+
+    private static void VerifyWarnings(Mock<ILogger> logger, Times times)
+    {
+        logger.Verify(
+            x => x.Log(
+                LogLevel.Warning,
+                It.IsAny<EventId>(),
+                It.IsAny<It.IsAnyType>(),
+                It.IsAny<Exception>(),
+                It.IsAny<Func<It.IsAnyType, Exception, string>>()),
+            times);
+    }
+
+    private static IMigration GetSingleMigration(TempScriptsDirectory directory, ILogger logger = null)
+    {
+        var migrationsProvider = new ScriptMigrationsProvider();
+        migrationsProvider.FromDirectory(directory.Path);
+
+        return migrationsProvider
+            .GetMigrations(Mock.Of<IMigrationConnection>(), new Dictionary<string, string>(), logger ?? Mock.Of<ILogger>())
+            .Should()
+            .ContainSingle()
+            .Subject;
+    }
+
+    private sealed class TempScriptsDirectory : IDisposable
+    {
+        public string Path { get; } = System.IO.Path.Combine(
+            System.IO.Path.GetTempPath(),
+            $"curiosus_scripts_{Guid.NewGuid():N}");
+
+        public TempScriptsDirectory()
+        {
+            Directory.CreateDirectory(Path);
+        }
+
+        public void Write(string fileName, string script)
+        {
+            File.WriteAllText(System.IO.Path.Combine(Path, fileName), script);
+        }
+
+        public void Dispose()
+        {
+            Directory.Delete(Path, recursive: true);
+        }
     }
 }
