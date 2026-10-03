@@ -109,13 +109,13 @@ public readonly struct MigrationResult
     /// </summary>
     /// <param name="errorCode">Migration error code</param>
     /// <param name="errorMessage">Error message</param>
-    /// <param name="exception">Exception that failed the migration.</param>
     /// <param name="failedMigration">Information about failed migration.</param>
+    /// <param name="exception">Exception that failed the migration.</param>
     public static MigrationResult CreateFailed(
         MigrationErrorCode errorCode,
         string errorMessage,
-        Exception exception,
-        MigrationInfo? failedMigration = null)
+        MigrationInfo? failedMigration,
+        Exception exception)
     {
         Guard.AssertNotEmpty(errorMessage, nameof(errorMessage));
         Guard.AssertNotNull(exception, nameof(exception));

@@ -74,5 +74,14 @@ public enum MigrationErrorCode
     /// <remarks>
     /// Check <see cref="MigrationPolicy"/>.
     /// </remarks>
-    PolicyError = 100
+    PolicyError = 100,
+
+    /// <summary>
+    /// Migration was cancelled with the cancellation token.
+    /// </summary>
+    /// <remarks>
+    /// <see cref="MigrationResult.Exception"/> holds the <see cref="System.OperationCanceledException"/>. Migrations
+    /// applied before the cancellation stay applied; a migration running without a transaction may be applied partially.
+    /// </remarks>
+    Cancelled = 110
 }

@@ -4,7 +4,8 @@
 
 ### Fixed
 
-- Error messages of failed operations include the reason of an unexpected exception (for example
+- Error messages of failed operations, including network errors (`NpgsqlException`), include the reason of an
+  unexpected exception (for example
   `Can not execute non-query SQL: <reason>`), and `MigrationResult.Exception` holds the exception itself.
 - Migrations without a comment (`1.sql`, `1.0.up.sql`, code migrations whose `Comment` is `null`) failed with
   "Value cannot be null (Parameter 'migrationName')" when the journal record was saved. A migration with
