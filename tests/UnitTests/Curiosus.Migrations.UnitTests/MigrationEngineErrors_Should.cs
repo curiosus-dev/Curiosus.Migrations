@@ -111,7 +111,7 @@ public class MigrationEngineErrors_Should
         return connection;
     }
 
-    private static IMigration CreateMigration(Func<DbTransaction?, CancellationToken, Task> upgrade)
+    private static IMigration CreateMigration(Func<DbTransaction, CancellationToken, Task> upgrade)
     {
         var migration = new Mock<IMigration>();
         migration
@@ -121,7 +121,7 @@ public class MigrationEngineErrors_Should
             .Setup(x => x.Dependencies)
             .Returns(new List<MigrationVersion>());
         migration
-            .Setup(x => x.UpgradeAsync(It.IsAny<DbTransaction?>(), It.IsAny<CancellationToken>()))
+            .Setup(x => x.UpgradeAsync(It.IsAny<DbTransaction>(), It.IsAny<CancellationToken>()))
             .Returns(upgrade);
 
         return migration.Object;
