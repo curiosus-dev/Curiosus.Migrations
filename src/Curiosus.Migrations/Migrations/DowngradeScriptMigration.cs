@@ -18,6 +18,18 @@ public class DowngradeScriptMigration : ScriptMigration, IDowngradeMigration
     /// </summary>
     public IReadOnlyList<ScriptMigrationBatch> DownScripts { get; }
 
+    private readonly bool? _isDowngradeTransactionRequired;
+
+    /// <inheritdoc />
+    /// <remarks>
+    /// Set by the <c>TRANSACTION</c> directive of the downgrade script, otherwise the same as for the upgrade.
+    /// </remarks>
+    public bool IsDowngradeTransactionRequired
+    {
+        get => _isDowngradeTransactionRequired ?? IsTransactionRequired;
+        init => _isDowngradeTransactionRequired = value;
+    }
+
     /// <inheritdoc cref="DowngradeScriptMigration"/>
     public DowngradeScriptMigration(
         ILogger? migrationLogger,

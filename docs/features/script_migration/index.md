@@ -65,6 +65,13 @@ Script options are set with directive comments, each on its own line:
 
 Spaces around the prefix, the option name, `=` and the value are optional (`--CURIOSUS:TRANSACTION=OFF`), names and
 values are case-insensitive, and a directive may be the last line of the script. An unknown option or value fails the
-build of the engine. The legacy `-- CURIOSITY:` prefix is still supported. For a migration with `.up.sql` and
-`.down.sql` scripts, the directives of the upgrade script apply to both directions; a warning is logged when the
-downgrade script declares different ones.
+build of the engine. The legacy `-- CURIOSITY:` prefix is still supported.
+
+For a migration with `.up.sql` and `.down.sql` scripts:
+
+- `LONG-RUNNING` and `DEPENDENCIES` describe the whole migration and come from the upgrade script; a warning is logged
+  when the downgrade script declares a different value.
+- `TRANSACTION` is set per direction: the downgrade script inherits the upgrade setting unless it declares its own.
+  So a transactional `CREATE INDEX` can be undone with `DROP INDEX CONCURRENTLY` and `-- CURIOSUS: TRANSACTION = OFF`
+  in the downgrade script, and a `CREATE INDEX CONCURRENTLY` upgrade with `TRANSACTION = OFF` needs no directive in its
+  downgrade script.

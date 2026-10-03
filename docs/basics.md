@@ -239,8 +239,9 @@ Add a directive comment to your SQL file, usually at the top:
 Directives are written as `-- CURIOSUS: <OPTION> = <VALUE>` on their own line: spaces are optional
 (`--CURIOSUS:LONG-RUNNING=TRUE` works too), and option names and values are case-insensitive. The options are
 `TRANSACTION` (`ON`/`OFF`), `LONG-RUNNING` (`TRUE`/`FALSE`) and `DEPENDENCIES` (comma-separated versions);
-an unknown option fails the build of the engine. For a migration with `.up.sql` and `.down.sql` scripts, the
-directives of the upgrade script apply to both directions.
+an unknown option fails the build of the engine. For a migration with `.up.sql` and `.down.sql` scripts,
+`LONG-RUNNING` and `DEPENDENCIES` come from the upgrade script, while `TRANSACTION` is set per direction: the downgrade
+script inherits the upgrade setting unless it declares its own.
 
 :::note
 
