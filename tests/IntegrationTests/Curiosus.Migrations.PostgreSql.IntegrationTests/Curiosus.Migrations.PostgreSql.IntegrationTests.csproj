@@ -25,4 +25,8 @@
       <ProjectReference Include="..\..\..\src\Curiosus.Migrations.PostgreSQL\Curiosus.Migrations.PostgreSQL.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+        <Compile Include="..\Shared\EngineTestsBase.cs" Link="EngineTests\EngineTestsBase.cs" />
+    </ItemGroup>
+
 </Project>
