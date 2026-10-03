@@ -58,35 +58,81 @@ public class MigrationEngineErrors_Should
     }
 
     [Fact]
-    public async Task ThrowOperationCanceled_When_CancelledDuringMigration()
+    public async Task ReturnCancelledWithOriginalException_When_CancelledDuringMigration()
     {
         using var cts = new CancellationTokenSource();
+        OperationCanceledException cancellation = null;
         var engine = CreateEngine(CreateMigration((_, token) =>
         {
             cts.Cancel();
-            token.ThrowIfCancellationRequested();
+            try
+            {
+                token.ThrowIfCancellationRequested();
+            }
+            catch (OperationCanceledException e)
+            {
+                cancellation = e;
+                throw;
+            }
+
             return Task.CompletedTask;
         }));
 
-        var act = () => engine.UpgradeDatabaseAsync(cts.Token);
+        var result = await engine.UpgradeDatabaseAsync(cts.Token);
 
-        await act.Should().ThrowAsync<OperationCanceledException>();
+        result.ErrorCode.Should().Be(MigrationErrorCode.Cancelled);
+        result.Exception.Should().BeSameAs(cancellation);
+        result.FailedMigration!.Value.Version.Should().Be(new MigrationVersion(1));
     }
 
     [Fact]
-    public async Task ThrowOperationCanceled_When_CancelledAndProviderWrapsTheCancellation()
+    public async Task ReturnOriginalError_When_FailedWithoutCancellationWhileTokenIsCancelled()
     {
         using var cts = new CancellationTokenSource();
         var engine = CreateEngine(CreateMigration((_, _) =>
         {
             cts.Cancel();
-            throw new MigrationException(MigrationErrorCode.MigratingError, "Can not execute script");
+            throw new MigrationException(MigrationErrorCode.MigratingError, "syntax error at or near \"SELEC\"");
         }));
 
-        var act = () => engine.UpgradeDatabaseAsync(cts.Token);
+        var result = await engine.UpgradeDatabaseAsync(cts.Token);
 
-        (await act.Should().ThrowAsync<OperationCanceledException>())
-            .Which.InnerException.Should().BeOfType<MigrationException>();
+        result.ErrorCode.Should().Be(MigrationErrorCode.MigratingError);
+        result.ErrorMessage.Should().Contain("SELEC");
+    }
+
+    [Fact]
+    public async Task ReturnErrorCodeOfMigrationException_When_PreMigrationThrowsIt()
+    {
+        var preMigration = new Mock<IMigration>();
+        preMigration
+            .Setup(x => x.Version)
+            .Returns(new MigrationVersion(0, 1));
+        preMigration
+            .Setup(x => x.Dependencies)
+            .Returns(new List<MigrationVersion>());
+        preMigration
+            .Setup(x => x.UpgradeAsync(It.IsAny<DbTransaction>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new MigrationException(MigrationErrorCode.AuthorizationError, "No permission"));
+        var engine = new MigrationEngine(
+            CreateConnection().Object,
+            new List<IMigration> { CreateMigration((_, _) => Task.CompletedTask) },
+            MigrationPolicy.AllAllowed,
+            MigrationPolicy.AllForbidden,
+            new List<IMigration> { preMigration.Object });
+
+        var result = await engine.UpgradeDatabaseAsync(TestContext.Current.CancellationToken);
+
+        result.ErrorCode.Should().Be(MigrationErrorCode.AuthorizationError);
+        result.ErrorMessage.Should().EndWith("No permission");
+    }
+
+    [Fact]
+    public void CreateFailedWithNullFailedMigration_StillCompiles()
+    {
+        var result = MigrationResult.CreateFailed(MigrationErrorCode.MigratingError, "error", null);
+
+        result.Exception.Should().BeNull();
     }
 
     private static Mock<IMigrationConnection> CreateConnection()

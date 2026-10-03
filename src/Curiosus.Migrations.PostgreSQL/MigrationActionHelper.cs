@@ -45,6 +45,10 @@ internal class MigrationActionHelper
         {
             return await action.Invoke(cancellationToken);
         }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
         catch (MigrationException)
         {
             throw;
@@ -57,7 +61,7 @@ internal class MigrationActionHelper
         {
             throw new MigrationException(
                 MigrationErrorCode.MigratingError,
-                "Error occured while migrating database",
+                $"Error occured while migrating database: {e.Message}",
                 e,
                 _databaseName);
         }
@@ -76,47 +80,23 @@ internal class MigrationActionHelper
     }
 
     /// <inheritdoc cref="TryExecuteAsync{T}"/>
-    public async Task TryExecuteAsync(
+    public Task TryExecuteAsync(
         Func<CancellationToken, Task> action,
         MigrationErrorCode errorCodeType,
         string errorMessage,
         CancellationToken cancellationToken = default)
     {
         Guard.AssertNotNull(action, nameof(action));
-        Guard.AssertNotEmpty(errorMessage, nameof(errorMessage));
 
-        try
-        {
-            await action.Invoke(cancellationToken);
-        }
-        catch (MigrationException)
-        {
-            throw;
-        }
-        catch (PostgresException e)
-        {
-            throw CreateMigrationExceptionFromPostgresException(e, errorCodeType, errorMessage);
-        }
-        catch (NpgsqlException e)
-        {
-            throw new MigrationException(
-                MigrationErrorCode.MigratingError,
-                "Error occured while migrating the database",
-                e,
-                _databaseName);
-        }
-        catch (InvalidOperationException)
-        {
-            throw;
-        }
-        catch (Exception e)
-        {
-            throw new MigrationException(
-                errorCodeType,
-                $"{errorMessage}: {e.Message}",
-                e,
-                _databaseName);
-        }
+        return TryExecuteAsync(
+            async ct =>
+            {
+                await action.Invoke(ct);
+                return true;
+            },
+            errorCodeType,
+            errorMessage,
+            cancellationToken);
     }
 
     /// <summary>
