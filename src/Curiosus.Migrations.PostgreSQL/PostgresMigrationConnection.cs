@@ -88,7 +88,7 @@ public class PostgresMigrationConnection : IMigrationConnection
         _defaultVariables = new Dictionary<string, string>
         {
             [DefaultVariables.User] = tempConnectionBuilder.Username!,
-            [DefaultVariables.DbName] = tempConnectionBuilder.Database
+            [DefaultVariables.DbName] = DatabaseName
         };
 
         NpgsqlConnection = null!;
