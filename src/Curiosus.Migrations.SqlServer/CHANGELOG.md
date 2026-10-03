@@ -5,8 +5,10 @@
 ### Fixed
 
 - Migrations running in a transaction (the default) failed with "Can not execute non-query SQL": commands were not
-  attached to the transaction, which SqlClient requires. Script migrations, code migrations using the migration
-  connection and the journal record now run in the migration transaction.
+  attached to the transaction, which SqlClient requires. Script migrations, the journal record and code migrations
+  calling `MigrationConnection.ExecuteNonQuerySqlAsync`/`ExecuteScalarSqlAsync` now run in the migration transaction.
+  Commands that a code migration creates on `MigrationConnection.Connection` itself (ADO.NET, Dapper) still need the
+  `transaction` passed to `UpgradeAsync`/`DowngradeAsync`, as SqlClient requires.
 
 ## [6.0.0] - 2026-09-29
 

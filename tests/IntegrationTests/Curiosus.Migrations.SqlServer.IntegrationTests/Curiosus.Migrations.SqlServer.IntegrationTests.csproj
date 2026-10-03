@@ -27,4 +27,8 @@
     <ProjectReference Include="..\..\..\src\Curiosus.Migrations\Curiosus.Migrations.csproj" />
   </ItemGroup>
 
-</Project> 
+    <ItemGroup>
+        <Compile Include="..\Shared\EngineTestsBase.cs" Link="EngineTests\EngineTestsBase.cs" />
+    </ItemGroup>
+
+</Project>
