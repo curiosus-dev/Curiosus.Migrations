@@ -86,12 +86,17 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Curiosus.Migrations.SqlServ
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Curiosus.Migrations.SqlServer.UnitTests", "tests\UnitTests\Curiosus.Migrations.SqlServer.UnitTests\Curiosus.Migrations.SqlServer.UnitTests.csproj", "{71CDD06E-EA2B-474E-8AA4-9FCD4CAE630C}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{56B0A11F-6876-4755-97C5-8BCCC5982FD0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Curiosus.Migrations.Sample", "samples\Curiosus.Migrations.Sample\Curiosus.Migrations.Sample.csproj", "{C2592528-4911-4187-8C9E-BD74C828BC48}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
+		{C2592528-4911-4187-8C9E-BD74C828BC48} = {56B0A11F-6876-4755-97C5-8BCCC5982FD0}
 		{E2F484A1-607F-4193-9592-341EFE7890BE} = {22DB0148-0BD7-4846-B63F-421B490392AB}
 		{E43F2D68-2971-4AB3-9392-BCCCF39253F6} = {22DB0148-0BD7-4846-B63F-421B490392AB}
 		{7BD873E3-3DA9-4CA9-830C-C72FAFC02CA3} = {22DB0148-0BD7-4846-B63F-421B490392AB}
@@ -153,5 +158,9 @@ Global
 		{71CDD06E-EA2B-474E-8AA4-9FCD4CAE630C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{71CDD06E-EA2B-474E-8AA4-9FCD4CAE630C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{71CDD06E-EA2B-474E-8AA4-9FCD4CAE630C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C2592528-4911-4187-8C9E-BD74C828BC48}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C2592528-4911-4187-8C9E-BD74C828BC48}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C2592528-4911-4187-8C9E-BD74C828BC48}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C2592528-4911-4187-8C9E-BD74C828BC48}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

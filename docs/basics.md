@@ -35,17 +35,22 @@ The migration process begins with configuring the `MigrationEngine` using the `M
 - Configuring logging and error handling
 
 ```csharp
-var builder = new MigrationEngineBuilder(services)
-    .UseScriptMigrations().FromDirectory("./Migrations")
-    .ConfigureForPostgreSql("Host=localhost;Database=mydb;Username=postgres;Password=password")
-    .UseUpgradeMigrationPolicy(MigrationPolicy.AllAllowed);
+var builder = new MigrationEngineBuilder(services);
+builder.UseScriptMigrations().FromDirectory("./Migrations");
+builder.ConfigureForPostgreSql("Host=localhost;Database=mydb;Username=postgres;Password=password");
+builder.UseUpgradeMigrationPolicy(MigrationPolicy.AllAllowed);
 ```
+
+`UseScriptMigrations()` and `UseCodeMigrations()` return the migrations provider to configure, not the builder, so the
+builder is configured with separate statements.
 
 ### 2. Infrastructure Preparation
 
 The `MigrationEngine` ensures the necessary infrastructure exists:
 
-- **Database**: If the database doesn't exist, it's created according to connection settings
+- **Database**: If the database doesn't exist, it's created according to connection settings. The check connects to
+  the maintenance database (`postgres` for PostgreSQL, `master` for SQL Server) on every run, so the user needs
+  access to it
 - **Migration Journal**: A table is created or verified to track applied migrations
 
 ### 3. Version Comparison
@@ -56,20 +61,26 @@ The migrator determines what needs to be done by comparing:
 - Available migrations (from providers)
 - Target version (specified in configuration)
 
+Every available migration that is not in the journal is applied, including versions lower than the latest applied
+one: a migration merged from another branch later is applied too. Journal records without a matching available
+migration are ignored.
+
 ### 4. Migration Planning
 
 Based on the comparison:
 
 - For **upgrades**: Plans to apply new migrations in ascending version order
 - For **downgrades**: Plans to apply downgrade migrations in descending version order
-- Filters migrations according to the configured policy (e.g., only short-running)
+- Migrations not allowed by the configured policy (e.g., only short-running) are skipped during execution and
+  returned in `SkippedByPolicyMigrations`
 
 ### 5. Migration Execution
 
 Migrations are executed according to the plan:
 
-- Transactions are handled based on migration configuration
-- Pre-migrations are executed first (if configured)
+- Pre-migrations are executed first (if configured and there are migrations to apply)
+- Each migration runs in its own transaction unless it disables it, and its journal record is written in the same
+  transaction
 - Results and progress are logged
 - Journal table is updated as migrations are applied
 
@@ -77,9 +88,12 @@ Migrations are executed according to the plan:
 
 The process concludes by:
 
-- Returning detailed results of the migration operation
+- Returning a `MigrationResult`: `IsSuccessfully`, `AppliedMigrations`, `SkippedByPolicyMigrations`, and on failure
+  `ErrorCode`, `ErrorMessage`, `FailedMigration` and the `Exception` that caused it
 - Logging completion status
-- Handling any errors that occurred during migration
+
+Errors are returned in the result, not thrown. Cancelling the token passed to `UpgradeDatabaseAsync` or
+`DowngradeDatabaseAsync` throws `OperationCanceledException`.
 
 ## Versioning System
 
@@ -92,7 +106,8 @@ A migration version consists of:
 - **Major**: Required primary version number (e.g., `1`, `20230101`)
 - **Minor**: Optional secondary version number after a dot (e.g., `.1`, `.42`)
 
-The complete pattern recognized is: `([\d\_]+)(\.(\d+))*`
+The complete pattern recognized is: `([\d_]+)(\.(\d+))*`. Underscores in the major part are ignored, so
+`20230101_1430` is `202301011430`; the major is a `long` and the minor is a `short`, both compared as numbers.
 
 ### Version Examples
 
@@ -118,6 +133,7 @@ Valid version formats include:
 var simpleVersion = new MigrationVersion(1);
 var decimalVersion = new MigrationVersion(1, 5);
 var dateVersion = new MigrationVersion(20230101);
+var parsedVersion = new MigrationVersion("20230101_1430.5");
 ```
 
 ## Target Version Management
@@ -127,12 +143,17 @@ The target version controls which migrations should be applied or rolled back.
 ### Setting a Target Version
 
 ```csharp
-// Set a specific target version (migrate to exactly version 3)
+// Set a specific target version (migrate up to version 3)
 builder.SetUpTargetVersion(new MigrationVersion(3));
+
+// Apply only migration 3, not the ones before it
+builder.SetUpTargetVersion(new MigrationVersion(3), onlyTargetVersion: true);
 
 // Migrate to the latest available version (default behavior)
 // No need to call SetUpTargetVersion
 ```
+
+The target version must be one of the available migrations, `Build()` throws otherwise.
 
 ### Migration Direction
 
@@ -140,27 +161,24 @@ The migration direction is not determined automatically. You need to manualy spe
 
 Example:
 ```csharp
-// Configure and build the migration engine
-var builder = new MigrationEngineBuilder(services)
-    .UseScriptMigrations().FromDirectory("path/to/migrations")
-    .UseCodeMigrations().FromAssembly(Assembly.GetExecutingAssembly())
-    .ConfigureForPostgreSql("YourConnectionString")
-    .UseUpgradeMigrationPolicy(MigrationPolicy.AllAllowed)
-    .UseDowngradeMigrationPolicy(MigrationPolicy.ShortRunningAllowed);
+// Configure the migration engine
+var builder = new MigrationEngineBuilder(services);
+builder.UseScriptMigrations().FromDirectory("path/to/migrations");
+builder.UseCodeMigrations().FromAssembly(Assembly.GetExecutingAssembly());
+builder.ConfigureForPostgreSql("YourConnectionString");
+builder.UseUpgradeMigrationPolicy(MigrationPolicy.AllAllowed);
+builder.UseDowngradeMigrationPolicy(MigrationPolicy.ShortRunningAllowed);
 
 // For upgrading to the latest version
-var migrationEngine = builder.Build();
-await migrationEngine.UpgradeDatabaseAsync();
+await builder.Build().UpgradeDatabaseAsync();
 
 // For upgrading to a specific version
 builder.SetUpTargetVersion(new MigrationVersion(3));
-var migrationEngine = builder.Build();
-await migrationEngine.UpgradeDatabaseAsync();
+await builder.Build().UpgradeDatabaseAsync();
 
-// For downgrading to a specific version
+// For downgrading to a specific version (the target version is required)
 builder.SetUpTargetVersion(new MigrationVersion(1));
-var migrationEngine = builder.Build();
-await migrationEngine.DowngradeDatabaseAsync();
+await builder.Build().DowngradeDatabaseAsync();
 ```
 
 ## Migration Types: Short-Running vs Long-Running
@@ -213,10 +231,16 @@ public class PopulateUserEmails : CodeMigration
 ```
 
 **For script migrations**:
-Add a special comment at the top of your SQL file:
+Add a directive comment to your SQL file, usually at the top:
 ```sql
 -- CURIOSUS: LONG-RUNNING = TRUE
 ```
+
+Directives are written as `-- CURIOSUS: <OPTION> = <VALUE>` on their own line: spaces are optional
+(`--CURIOSUS:LONG-RUNNING=TRUE` works too), and option names and values are case-insensitive. The options are
+`TRANSACTION` (`ON`/`OFF`), `LONG-RUNNING` (`TRUE`/`FALSE`) and `DEPENDENCIES` (comma-separated versions);
+an unknown option fails the build of the engine. For a migration with `.up.sql` and `.down.sql` scripts, the
+directives of the upgrade script apply to both directions.
 
 :::note
 
@@ -231,10 +255,14 @@ Migration policies control which types of migrations are allowed to run in diffe
 
 ### Available Policies
 
-- **AllForbidden** (0): No migrations are allowed to run
-- **ShortRunningAllowed** (1): Only short-running migrations can run
-- **LongRunningAllowed** (2): Only long-running migrations can run
-- **AllAllowed** (3): All migrations can run, regardless of type
+- **AllForbidden**: No migrations are allowed to run. If there are migrations to apply, the result fails with
+  `MigrationErrorCode.PolicyError` (pre-migrations have already run by then)
+- **ShortRunningAllowed**: Only short-running migrations can run
+- **LongRunningAllowed**: Only long-running migrations can run
+- **AllAllowed**: All migrations can run, regardless of type
+
+`MigrationPolicy` is a flags enum: `ShortRunningAllowed | LongRunningAllowed` allows the same migrations as `AllAllowed`.
+By default upgrades are `AllAllowed` and downgrades are `AllForbidden`.
 
 ### Configuring Policies
 
@@ -247,6 +275,8 @@ var builder = new MigrationEngineBuilder(services)
     // Only allow short-running migrations during downgrades
     .UseDowngradeMigrationPolicy(MigrationPolicy.ShortRunningAllowed);
 ```
+
+Policy methods return the builder, so they can be chained.
 
 ### Policy Usage Scenarios
 
@@ -273,13 +303,13 @@ var builder = new MigrationEngineBuilder(services)
 Migration providers determine where migrations come from. You can configure multiple providers to source migrations from different locations.
 
 ```csharp
-var builder = new MigrationEngineBuilder(services)
-    // Add migrations from SQL scripts
-    .UseScriptMigrations().FromDirectory("./Migrations/Scripts")
-    // Add migrations from embedded resources
-    .UseScriptMigrations().FromEmbeddedResources(Assembly.GetExecutingAssembly(), "MyNamespace.Migrations")
-    // Add migrations from code
-    .UseCodeMigrations().FromAssembly(Assembly.GetExecutingAssembly());
+var builder = new MigrationEngineBuilder(services);
+// Add migrations from SQL scripts
+builder.UseScriptMigrations().FromDirectory("./Migrations/Scripts");
+// Add migrations from embedded resources
+builder.UseScriptMigrations().FromAssembly(Assembly.GetExecutingAssembly(), "MyNamespace.Migrations");
+// Add migrations from code
+builder.UseCodeMigrations().FromAssembly(Assembly.GetExecutingAssembly());
 ```
 
 For more information on available providers and custom implementations, see the [Migration Providers](./features/migration_providers.md) article.
@@ -290,37 +320,40 @@ Here's a complete example showing how to configure the migration engine with all
 
 ```csharp
 using Curiosus.Migrations;
+using Curiosus.Migrations.PostgreSQL;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Threading.Tasks;
 
-// Create service collection
+// Create service collection and logger (AddConsole needs the Microsoft.Extensions.Logging.Console package)
 var services = new ServiceCollection();
-services.AddLogging(configure => configure.AddConsole());
+using var loggerFactory = LoggerFactory.Create(configure => configure.AddConsole());
 
 // Configure and build the migration engine
-var builder = new MigrationEngineBuilder(services)
-    // Add script migrations from directory
-    .UseScriptMigrations()
-        .FromDirectory("./DatabaseMigrations")
-        .WithScriptIncorrectNamingAction(ScriptIncorrectNamingAction.ThrowException)
-    // Add code migrations from assembly
-    .UseCodeMigrations()
-        .FromAssembly(typeof(Program).Assembly)
-    // Configure database connection
-    .ConfigureForPostgreSql("Host=localhost;Database=myapp;Username=postgres;Password=secret")
+var builder = new MigrationEngineBuilder(services);
+// Add script migrations from directory, fail on files with incorrect names
+builder.UseScriptMigrations()
+    .FromDirectory("./DatabaseMigrations", ScriptIncorrectNamingAction.ThrowException);
+// Add code migrations from assembly
+builder.UseCodeMigrations()
+    .FromAssembly(typeof(Program).Assembly);
+// Configure pre-migrations
+builder.UseScriptPreMigrations()
+    .FromDirectory("./DatabasePreMigrations");
+builder
+    // Configure database connection and the journal table name
+    .ConfigureForPostgreSql(
+        "Host=localhost;Database=myapp;Username=postgres;Password=secret",
+        migrationTableHistoryName: "migration_history")
     // Set migration policies
     .UseUpgradeMigrationPolicy(MigrationPolicy.AllAllowed)
     .UseDowngradeMigrationPolicy(MigrationPolicy.ShortRunningAllowed)
     // Add variables for substitution in scripts
     .UseVariable("%SCHEMA%", "public")
     .UseVariable("%TABLE_PREFIX%", "app_")
-    // Configure journal table
-    .UseJournalTable("migration_history")
-    // Configure pre-migrations
-    .UsePreMigrations()
-        .AddPreMigrationScript("CREATE EXTENSION IF NOT EXISTS pg_trgm;")
+    // Configure logging
+    .UseLogger(loggerFactory.CreateLogger("Migrations"))
     // Set target version (optional)
     .SetUpTargetVersion(new MigrationVersion(20230101));
 
@@ -331,14 +364,14 @@ var migrationEngine = builder.Build();
 var result = await migrationEngine.UpgradeDatabaseAsync();
 
 // Handle results
-if (result.IsSuccessful)
+if (result.IsSuccessfully)
 {
-    Console.WriteLine($"Successfully migrated to version {result.CurrentVersion}");
     Console.WriteLine($"Applied {result.AppliedMigrations.Count} migrations");
+    Console.WriteLine($"Skipped by policy {result.SkippedByPolicyMigrations.Count} migrations");
 }
 else
 {
-    Console.WriteLine($"Migration failed: {result.ErrorMessage}");
+    Console.WriteLine($"Migration {result.FailedMigration?.Version} failed ({result.ErrorCode}): {result.ErrorMessage}");
 }
 ```
 
@@ -348,25 +381,33 @@ else
 
 **Problem**: Migration version cannot be parsed from filename or class.
 
-**Solution**: Ensure your version format matches the pattern `([\d\_]+)(\.(\d+))*`. 
-Check for common mistakes like using letters in version numbers.
+**Solution**: Ensure your version format matches the pattern `([\d_]+)(\.(\d+))*` and the file name matches the
+[script naming pattern](./features/script_migration/index.md#file-naming). Files with incorrect names are skipped with a
+warning by default: pass `ScriptIncorrectNamingAction.ThrowException` to `FromDirectory`/`FromAssembly` to fail instead.
+
+Version strings are parsed leniently: the first part of the string matching the pattern is used, so check versions
+that come from strings, for example in the `DEPENDENCIES` directive:
 
 ```csharp
-// Correct
 new MigrationVersion(1, 5);          // 1.5
 new MigrationVersion(20230101);      // 20230101
+new MigrationVersion("1.5");         // 1.5
+new MigrationVersion("1.05");        // 1.5, the minor part is a number
+new MigrationVersion("v1");          // 1, the letter is skipped
+new MigrationVersion("1.2.3");       // 1.3, the last minor part wins
 
 // Incorrect (will cause errors)
-// new MigrationVersion("v1");       // Cannot use letters
-// new MigrationVersion(-1);         // Cannot use negative numbers
+// new MigrationVersion("abc");      // No digits: ArgumentException
+// new MigrationVersion(-1);         // Cannot use negative numbers: ArgumentOutOfRangeException
 ```
 
 ### Missing Dependencies
 
 **Problem**: Migrations fail with errors about missing dependencies.
 
-**Solution**: Ensure all referenced migrations exist and are available to the migration engine.
-Check that your dependency versions are correctly specified.
+**Solution**: Dependencies are checked right before a migration runs: every dependency must already be in the journal.
+Ensure the referenced migrations exist, have lower versions (migrations run in version order, so a dependency on a
+higher version always fails) and are allowed by the policy of the run.
 
 ### Transaction Errors
 
@@ -401,7 +442,8 @@ public class CreateIndexMigration : CodeMigration
 
 **Problem**: Migrations don't run due to policy restrictions.
 
-**Solution**: Check your migration policy settings and ensure they allow the types of migrations you're trying to run:
+**Solution**: Check `result.SkippedByPolicyMigrations` and your migration policy settings, and ensure they allow the
+types of migrations you're trying to run:
 
 ```csharp
 // Make sure your policy allows the migrations you want to run

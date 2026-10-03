@@ -26,15 +26,23 @@ Dependencies are especially valuable in these scenarios:
 
 When you specify dependencies for a migration:
 
-1. The migration engine validates that all specified dependencies exist in the available migrations
-2. Before applying the migration, it verifies that all dependencies have been successfully applied
-3. If any dependency is missing or hasn't been applied, the migration fails with a `MigrationErrorCode.MigratingError`
+1. Right before applying the migration, the engine verifies that all dependencies are in the journal: applied by an
+   earlier run or earlier in this run
+2. If any dependency hasn't been applied, the run fails with `MigrationErrorCode.MigratingError` at this migration:
+   the migrations applied before it stay applied, the next ones are not applied
 
-Dependencies work alongside the standard version-based ordering. The engine still applies migrations in version order, but adds the additional constraint that all dependencies must be satisfied before a migration runs.
+Dependencies work alongside the standard version-based ordering. The engine still applies migrations in version order, but adds the additional constraint that all dependencies must be satisfied before a migration runs. Dependencies don't reorder migrations, so a dependency must have a lower version than the migration that declares it: a dependency on a higher version always fails.
+
+Dependencies are not validated when the engine is built: a dependency on a version that doesn't exist is reported only
+when the migration is about to run.
+
+A migration skipped by the [migration policy](../basics.md#migration-policies) is not applied, so a migration depending on
+it fails the run. This is what keeps the "short, long, short" sequence of scenario 6 safe: with a startup policy that
+allows short-running migrations only, the run fails at the third migration until the long-running one has been applied.
 
 ## Implementing Dependencies in Script Migrations
 
-For SQL script migrations, specify dependencies using the `--CURIOSUS:Dependencies` directive at the beginning of your file:
+For SQL script migrations, specify dependencies using the `-- CURIOSUS: DEPENDENCIES` directive (usually at the beginning of your file):
 
 ```sql
 -- Version: 3.0
@@ -54,18 +62,23 @@ CREATE INDEX idx_user_permissions_user_id ON user_permissions(user_id);
 In this example, the migration declares that versions 1.0 and 2.0 must be applied before it can run. This might be because those migrations create the "users" table and add necessary columns that this migration references.
 
 
-The `--CURIOSUS:Dependencies` directive should:
+The `DEPENDENCIES` directive should:
 
-- Appear at the beginning of the file (within the first few lines)
+- Be a line of its own, anywhere in the script; spaces around `:` and `=` are optional and the option name is case-insensitive
 - List dependencies as comma-separated version numbers
 - Use the same version format as your migration versioning scheme
+
+Don't put other text on the directive line: everything after `=` is read as the list of versions.
 
 Examples:
 
 ```sql
---CURIOSUS:Dependencies=1.0, 2.0                  -- Simple versions
---CURIOSUS:Dependencies=20230101, 20230102.1      -- Date-based versions
---CURIOSUS:Dependencies=2023_01_01, 2023_01_02    -- Versions with underscores
+-- Simple versions
+--CURIOSUS:Dependencies=1.0, 2.0
+-- Date-based versions
+-- CURIOSUS: DEPENDENCIES = 20230101, 20230102.1
+-- Versions with underscores
+-- CURIOSUS: DEPENDENCIES = 2023_01_01, 2023_01_02
 ```
 
 ## Implementing Dependencies in Code Migrations
@@ -116,19 +129,15 @@ This approach provides type safety and IntelliSense support for specifying depen
 If you receive a `MigrationErrorCode.MigratingError` with a message about missing dependencies:
 
 1. Verify that all dependent migrations exist in your migration source (directory, assembly, etc.)
-2. Check that dependent migration versions are correctly specified
-3. Ensure that dependent migrations have successfully applied to the database
+2. Check that dependent migration versions are correctly specified and lower than the version of the migration
+3. Check whether the dependency was skipped by the migration policy (`result.SkippedByPolicyMigrations`)
 4. Check the migration journal table to see the current state of applied migrations
 
 ### Circular Dependencies
 
-Circular dependencies (A depends on B, and B depends on A) are not allowed and will cause errors during migration validation.
-
-If you encounter circular dependency errors:
-
-1. Redesign your migrations to eliminate the circular reference
-2. Consider merging the migrations if they're tightly coupled
-3. Create an intermediate migration that both can depend on
+Circular dependencies (A depends on B, and B depends on A) are not detected separately: one of the migrations of a
+cycle depends on a higher version, so it fails when it is about to run. Redesign your migrations to eliminate the
+circular reference, merge them if they're tightly coupled, or create an intermediate migration that both can depend on.
 
 ## Example: Migration Dependency Chain
 

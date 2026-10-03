@@ -21,12 +21,12 @@ Put SQL scripts named by version (`1.0.sql`, `1.1-add_users.sql`, `2.0.down.sql`
 using Curiosus.Migrations;
 using Curiosus.Migrations.PostgreSQL;
 
-var engine = new MigrationEngineBuilder(services)
-    .UseScriptMigrations().FromDirectory("./Migrations")
-    .UseCodeMigrations().FromAssembly(typeof(Program).Assembly)
-    .ConfigureForPostgreSql(connectionString)
-    .UseUpgradeMigrationPolicy(MigrationPolicy.ShortRunningAllowed)
-    .Build();
+var builder = new MigrationEngineBuilder(services);
+builder.UseScriptMigrations().FromDirectory("./Migrations"); // returns the provider, not the builder
+builder.UseCodeMigrations().FromAssembly(typeof(Program).Assembly);
+builder.ConfigureForPostgreSql(connectionString);
+builder.UseUpgradeMigrationPolicy(MigrationPolicy.ShortRunningAllowed);
+var engine = builder.Build();
 
 var result = await engine.UpgradeDatabaseAsync(cancellationToken);
 if (!result.IsSuccessfully)
@@ -51,7 +51,7 @@ public class SeedRolesMigration : CodeMigration
 
 ## Key concepts
 
-- [Script migrations](https://curiosus-dev.github.io/Curiosus.Migrations/features/script_migration) come from a directory or from embedded resources. They can be split into [batches](https://curiosus-dev.github.io/Curiosus.Migrations/features/script_migration/batches) with `--BATCH:`. Directives such as `--CURIOSUS:TRANSACTION=OFF`, `--CURIOSUS:LONG-RUNNING=TRUE` and `--CURIOSUS:DEPENDENCIES=1.0, 1.1` set options for a script. The legacy `--CURIOSITY:` prefix still works.
+- [Script migrations](https://curiosus-dev.github.io/Curiosus.Migrations/features/script_migration) come from a directory or from embedded resources. They can be split into [batches](https://curiosus-dev.github.io/Curiosus.Migrations/features/script_migration/batches) with `--BATCH:`. Directives such as `-- CURIOSUS: TRANSACTION = OFF`, `-- CURIOSUS: LONG-RUNNING = TRUE` and `-- CURIOSUS: DEPENDENCIES = 1.0, 1.1` set options for a script (the upgrade script's directives apply to its downgrade script too). The legacy `--CURIOSITY:` prefix still works.
 - [Code migrations](https://curiosus-dev.github.io/Curiosus.Migrations/features/code_migration) are C# classes. They support [dependency injection](https://curiosus-dev.github.io/Curiosus.Migrations/features/code_migration/di) and [EF Core](https://curiosus-dev.github.io/Curiosus.Migrations/features/code_migration/ef_integration).
 - [Downgrade](https://curiosus-dev.github.io/Curiosus.Migrations/features/downgrade) uses `*.down.sql` scripts or `IDowngradeMigration`. Call `DowngradeDatabaseAsync` with a target version set by `SetUpTargetVersion`.
 - [Long-running migrations](https://curiosus-dev.github.io/Curiosus.Migrations/basics#migration-types-short-running-vs-long-running) and [policies](https://curiosus-dev.github.io/Curiosus.Migrations/basics#migration-policies): the upgrade and downgrade `MigrationPolicy` values decide which migrations run, so heavy data migrations can run separately from fast schema changes.

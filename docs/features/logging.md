@@ -24,6 +24,9 @@ var migrationEngine = new MigrationEngineBuilder()
     .Build();
 ```
 
+The engine doesn't take loggers from dependency injection: pass them with `UseLogger` and `UseLoggerForSql`.
+Without them nothing is logged.
+
 The general logger tracks major events like:
 
 - Database existence checks and creation
@@ -50,21 +53,29 @@ var migrationEngine = new MigrationEngineBuilder()
 ```
 
 The SQL logger captures:
-- Complete SQL query text
+- Complete SQL query text, after [variable substitution](./variables.md)
 - Parameter names and values
-- Execution timing
+
+Execution time is not logged. The PostgreSQL provider writes every executed SQL at the `Information` level, the SQL
+Server provider at the `Debug` level.
+
+:::warning
+
+The SQL log contains the scripts as executed, including the values of variables and query parameters: don't enable it
+where those may contain secrets, or filter the logger category.
+
+:::
 
 This is particularly useful for:
 - Debugging database issues during migrations
 - Auditing database changes
-- Performance analysis of SQL operations
 - Verifying that generated SQL matches expected queries
 
 By using separate loggers for general migration events and SQL queries, you can control the verbosity of each independently based on your needs.
 
 ## Using Logger in Code Migrations
 
-When implementing code migrations, you have direct access to the logger configured for the migration engine. The logger is available through the `Logger` property in your code migration class.
+When implementing code migrations, you have direct access to the general logger configured for the migration engine with `UseLogger`. The logger is available through the `Logger` property in your code migration class.
 
 Here's how to use the logger in your code migrations:
 

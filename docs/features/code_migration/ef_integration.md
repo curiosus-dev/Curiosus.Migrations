@@ -13,7 +13,7 @@ sidebar_label: EntityFramework Integration
 
 ### Attaching to Connection
 
-When creating an Entity Framework `DbContext` within a code migration, you can attach it to the same database connection that the migration is using:
+When creating an Entity Framework `DbContext` within a code migration, you can attach it to the same database connection that the migration is using (the example is for PostgreSQL, use `UseSqlServer` for SQL Server):
 
 ```csharp
 public override async Task UpgradeAsync(DbTransaction? transaction = null, CancellationToken cancellationToken = default)
@@ -35,6 +35,10 @@ public override async Task UpgradeAsync(DbTransaction? transaction = null, Cance
     }
 }
 ```
+
+Attaching the context to the migration transaction is required on SQL Server, where every command must be attached
+to the pending transaction of the connection; on PostgreSQL it makes the changes of the context part of the
+migration transaction.
 
 ### Transaction Control
 

@@ -17,16 +17,16 @@ dotnet add package Curiosus.Migrations.PostgreSQL
 using Curiosus.Migrations;
 using Curiosus.Migrations.PostgreSQL;
 
-var engine = new MigrationEngineBuilder(services)
-    .UseScriptMigrations().FromDirectory("./Migrations")
-    .UseCodeMigrations().FromAssembly(typeof(Program).Assembly)
-    .ConfigureForPostgreSql(
-        "Host=localhost;Database=myapp;Username=postgres;Password=secret",
-        migrationTableHistoryName: "migration_history",
-        databaseEncoding: "UTF8",
-        template: "template0")
-    .UseUpgradeMigrationPolicy(MigrationPolicy.AllAllowed)
-    .Build();
+var builder = new MigrationEngineBuilder(services);
+builder.UseScriptMigrations().FromDirectory("./Migrations"); // returns the provider, not the builder
+builder.UseCodeMigrations().FromAssembly(typeof(Program).Assembly);
+builder.ConfigureForPostgreSql(
+    "Host=localhost;Database=myapp;Username=postgres;Password=secret",
+    migrationTableHistoryName: "migration_history",
+    databaseEncoding: "UTF8",
+    template: "template0");
+builder.UseUpgradeMigrationPolicy(MigrationPolicy.AllAllowed);
+var engine = builder.Build();
 
 var result = await engine.UpgradeDatabaseAsync(cancellationToken);
 ```

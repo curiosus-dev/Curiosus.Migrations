@@ -10,6 +10,8 @@ sidebar_label: Supported Databases
     <tr>
       <td align="center" valign="middle">
           <img src="https://raw.githubusercontent.com/curiosus-dev/Curiosus.Migrations/main/docs/images/postgresql.png" width="200" />
+          <br />
+          <b>PostgreSQL</b>
       </td>
       <td align="center" valign="middle">
           <img src="https://raw.githubusercontent.com/curiosus-dev/Curiosus.Migrations/main/docs/images/sqlserver.svg" width="200" />
@@ -20,7 +22,11 @@ sidebar_label: Supported Databases
   </tbody>
 </table>
 
-If you don't find a desired database, you can contribute and add support by yourself.
+MySQL/MariaDB ([#37](https://github.com/curiosus-dev/Curiosus.Migrations/issues/37)) and SQLite
+([#38](https://github.com/curiosus-dev/Curiosus.Migrations/issues/38)) are planned for v7, after the engine rework that
+makes a new database a small dialect ([#36](https://github.com/curiosus-dev/Curiosus.Migrations/issues/36)). Until then,
+a custom `IMigrationConnection` passed through `UseMigrationConnectionFactory` adds any other database; contributions are
+welcome.
 
 ## PostgreSQL
 
@@ -34,11 +40,11 @@ dotnet add package Curiosus.Migrations.PostgreSQL
 
 ```csharp
 // Configure the migration engine for PostgreSQL
-var builder = new MigrationEngineBuilder(services)
-    .UseScriptMigrations().FromDirectory("./Migrations")
-    .UseCodeMigrations().FromAssembly(Assembly.GetExecutingAssembly())
-    .ConfigureForPostgreSql("Host=localhost;Database=myapp;Username=postgres;Password=secret")
-    .UseUpgradeMigrationPolicy(MigrationPolicy.AllAllowed);
+var builder = new MigrationEngineBuilder(services);
+builder.UseScriptMigrations().FromDirectory("./Migrations"); // returns the provider, not the builder
+builder.UseCodeMigrations().FromAssembly(Assembly.GetExecutingAssembly());
+builder.ConfigureForPostgreSql("Host=localhost;Database=myapp;Username=postgres;Password=secret");
+builder.UseUpgradeMigrationPolicy(MigrationPolicy.AllAllowed);
 
 var migrationEngine = builder.Build();
 ```
@@ -68,11 +74,11 @@ dotnet add package Curiosus.Migrations.SqlServer
 
 ```csharp
 // Configure the migration engine for SQL Server
-var builder = new MigrationEngineBuilder(services)
-    .UseScriptMigrations().FromDirectory("./Migrations")
-    .UseCodeMigrations().FromAssembly(Assembly.GetExecutingAssembly())
-    .ConfigureForSqlServer("Server=localhost;Database=myapp;User Id=sa;Password=YourStrong@Passw0rd;")
-    .UseUpgradeMigrationPolicy(MigrationPolicy.AllAllowed);
+var builder = new MigrationEngineBuilder(services);
+builder.UseScriptMigrations().FromDirectory("./Migrations"); // returns the provider, not the builder
+builder.UseCodeMigrations().FromAssembly(Assembly.GetExecutingAssembly());
+builder.ConfigureForSqlServer("Server=localhost;Database=myapp;User Id=sa;Password=YourStrong@Passw0rd;");
+builder.UseUpgradeMigrationPolicy(MigrationPolicy.AllAllowed);
 
 var migrationEngine = builder.Build();
 ```
