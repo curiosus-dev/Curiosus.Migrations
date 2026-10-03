@@ -2,15 +2,24 @@
 
 ## [Unreleased]
 
+### Added
+
+- `IDowngradeMigration.IsDowngradeTransactionRequired`: whether the downgrade runs in a transaction, by default the
+  same as `IsTransactionRequired`. Script migrations set it with the `TRANSACTION` directive of the downgrade script.
+
 ### Fixed
 
 - Script directives written with spaces, as in the documentation (`-- CURIOSUS: TRANSACTION = OFF`), threw
   "Option ... is unknown". Spaces around the option name, `=` and the value are allowed now, and a directive on the
   last line of a script without a line break is no longer ignored.
 - A migration with both `.up.sql` and `.down.sql` scripts took its directives and comment from whichever file was
-  read last, which depends on the file system. The upgrade script directives and comment apply to both directions
-  now (the comment of the downgrade script is used when the upgrade script has none), and a warning is logged when
-  the downgrade script declares different directives. Script files are read in ordinal name order.
+  read last, which depends on the file system. Now `LONG-RUNNING` and `DEPENDENCIES` come from the upgrade script
+  (a warning is logged when the downgrade script declares different ones), `TRANSACTION` applies per direction: the
+  downgrade script inherits the upgrade setting unless it declares its own, so a `DROP INDEX CONCURRENTLY` rollback
+  can run outside a transaction. The comment comes from the upgrade script, or from the downgrade script when the
+  upgrade script has none. Script files are read in ordinal name order.
+- Directives were parsed with the current culture, so lower-case directives failed under the Turkish culture.
+- The error for an incorrect `DEPENDENCIES` value names the value that failed to parse.
 
 ## [6.0.0] - 2026-09-29
 

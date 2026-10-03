@@ -453,7 +453,10 @@ public sealed class MigrationEngine : IMigrationEngine, IDisposable
                 await _migrationConnection.CloseConnectionAsync();
                 await _migrationConnection.OpenConnectionAsync(cancellationToken);
 
-                if (migration.IsTransactionRequired)
+                var isTransactionRequired = !isUpgrade && migration is IDowngradeMigration downgradeMigration
+                    ? downgradeMigration.IsDowngradeTransactionRequired
+                    : migration.IsTransactionRequired;
+                if (isTransactionRequired)
                 {
                     transaction = _migrationConnection.BeginTransaction();
                 }
