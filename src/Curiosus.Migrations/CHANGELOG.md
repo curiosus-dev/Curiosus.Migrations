@@ -4,8 +4,9 @@
 
 ### Added
 
-- `MigrationException` is public: throw it from a custom connection, migrations provider or migration to fail the
-  migration with a specific `MigrationErrorCode`.
+- `MigrationException` is public: throw `new MigrationException(errorCode, message)` (or with an inner exception)
+  from a custom connection, migrations provider or migration to fail the migration with a specific
+  `MigrationErrorCode`.
 - `MigrationResult.Exception` holds the exception that failed the migration, and a
   `MigrationResult.CreateFailed(errorCode, errorMessage, failedMigration, exception)` overload takes it.
 - `MigrationErrorCode.Cancelled` for migrations cancelled with the cancellation token.
@@ -17,7 +18,8 @@
 - Cancelling the token passed to `UpgradeDatabaseAsync`/`DowngradeDatabaseAsync` returns a failed result with the new
   `MigrationErrorCode.Cancelled` and the `OperationCanceledException` in `MigrationResult.Exception`, instead of
   `MigratingError` or `UnknownError`. An error that happens while the token is cancelled but isn't caused by the
-  cancellation is still reported with its own code.
+  cancellation is still reported with its own code. If you treated `MigratingError` or `UnknownError` of a cancelled
+  run as cancellation, check for `MigrationErrorCode.Cancelled` instead.
 
 ### Fixed
 

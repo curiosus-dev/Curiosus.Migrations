@@ -42,15 +42,6 @@ internal class MigrationActionHelper
         {
             return await func(cancellationToken);
         }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-        {
-            throw;
-        }
-        catch (SqlException sqlEx) when (cancellationToken.IsCancellationRequested)
-        {
-            // SqlClient reports a cancelled command as "Operation cancelled by user" SqlException.
-            throw new OperationCanceledException(sqlEx.Message, sqlEx, cancellationToken);
-        }
         catch (MigrationException)
         {
             throw;
