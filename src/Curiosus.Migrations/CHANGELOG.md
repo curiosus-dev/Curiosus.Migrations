@@ -4,11 +4,27 @@
 
 ### Added
 
+- `MigrationException` is public: throw `new MigrationException(errorCode, message)` (or with an inner exception)
+  from a custom connection, migrations provider or migration to fail the migration with a specific
+  `MigrationErrorCode`.
+- `MigrationResult.Exception` holds the exception that failed the migration, and a
+  `MigrationResult.CreateFailed(errorCode, errorMessage, failedMigration, exception)` overload takes it.
+- `MigrationErrorCode.Cancelled` for migrations cancelled with the cancellation token.
 - `IDowngradeMigration.IsDowngradeTransactionRequired`: whether the downgrade runs in a transaction, by default the
   same as `IsTransactionRequired`. Script migrations set it with the `TRANSACTION` directive of the downgrade script.
 
+### Changed
+
+- Cancelling the token passed to `UpgradeDatabaseAsync`/`DowngradeDatabaseAsync` returns a failed result with the new
+  `MigrationErrorCode.Cancelled` and the `OperationCanceledException` in `MigrationResult.Exception`, instead of
+  `MigratingError` or `UnknownError`. An error that happens while the token is cancelled but isn't caused by the
+  cancellation is still reported with its own code. If you treated `MigratingError` or `UnknownError` of a cancelled
+  run as cancellation, check for `MigrationErrorCode.Cancelled` instead.
+
 ### Fixed
 
+- The `UnknownError` result message includes the message of the exception that caused it.
+- A `MigrationException` thrown by a pre-migration keeps its `ErrorCode` in the result instead of `MigratingError`.
 - Script directives written with spaces, as in the documentation (`-- CURIOSUS: TRANSACTION = OFF`), threw
   "Option ... is unknown". Spaces around the option name, `=` and the value are allowed now, and a directive on the
   last line of a script without a line break is no longer ignored.

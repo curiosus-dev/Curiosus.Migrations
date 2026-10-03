@@ -26,6 +26,11 @@ public readonly struct MigrationResult
     public string? ErrorMessage { get; }
 
     /// <summary>
+    /// Exception that failed the migration, if any.
+    /// </summary>
+    public Exception? Exception { get; }
+
+    /// <summary>
     /// Information about migrations applied during engine work.
     /// </summary>
     public IReadOnlyList<MigrationInfo> AppliedMigrations { get; }
@@ -46,7 +51,8 @@ public readonly struct MigrationResult
         IReadOnlyList<MigrationInfo>? skippedByPolicyMigrations,
         MigrationInfo? failedMigration,
         MigrationErrorCode? errorCode,
-        string? errorMessage)
+        string? errorMessage,
+        Exception? exception = null)
     {
         AppliedMigrations = appliedMigrations ?? Array.Empty<MigrationInfo>();
         SkippedByPolicyMigrations = skippedByPolicyMigrations ?? Array.Empty<MigrationInfo>();
@@ -54,6 +60,7 @@ public readonly struct MigrationResult
         FailedMigration = failedMigration;
         ErrorCode = errorCode;
         ErrorMessage = errorMessage;
+        Exception = exception;
     }
 
     /// <summary>
@@ -95,5 +102,30 @@ public readonly struct MigrationResult
             failedMigration,
             errorCode,
             errorMessage);
+    }
+
+    /// <summary>
+    /// Create failure migration result with the exception that failed the migration
+    /// </summary>
+    /// <param name="errorCode">Migration error code</param>
+    /// <param name="errorMessage">Error message</param>
+    /// <param name="failedMigration">Information about failed migration.</param>
+    /// <param name="exception">Exception that failed the migration.</param>
+    public static MigrationResult CreateFailed(
+        MigrationErrorCode errorCode,
+        string errorMessage,
+        MigrationInfo? failedMigration,
+        Exception exception)
+    {
+        Guard.AssertNotEmpty(errorMessage, nameof(errorMessage));
+        Guard.AssertNotNull(exception, nameof(exception));
+
+        return new MigrationResult(
+            null,
+            null,
+            failedMigration,
+            errorCode,
+            errorMessage,
+            exception);
     }
 }

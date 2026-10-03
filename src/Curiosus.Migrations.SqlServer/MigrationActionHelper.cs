@@ -54,7 +54,7 @@ internal class MigrationActionHelper
         {
             throw new MigrationException(
                 errorCode,
-                errorMessage,
+                $"{errorMessage}: {e.Message}",
                 e,
                 _databaseName);
         }
@@ -69,32 +69,21 @@ internal class MigrationActionHelper
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Result of <see cref="func"/>.</returns>
     /// <exception cref="MigrationException">If <see cref="func"/> throw exception.</exception>
-    internal async Task TryExecuteAsync(
+    internal Task TryExecuteAsync(
         Func<CancellationToken, Task> func,
         MigrationErrorCode errorCode,
         string errorMessage,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            await func(cancellationToken);
-        }
-        catch (MigrationException)
-        {
-            throw;
-        }
-        catch (SqlException sqlEx)
-        {
-            throw CreateMigrationExceptionFromSqlException(sqlEx, errorCode, errorMessage);
-        }
-        catch (Exception e)
-        {
-            throw new MigrationException(
-                errorCode,
-                errorMessage,
-                e,
-                _databaseName);
-        }
+        return TryExecuteAsync(
+            async ct =>
+            {
+                await func(ct);
+                return true;
+            },
+            errorCode,
+            errorMessage,
+            cancellationToken);
     }
 
     /// <summary>

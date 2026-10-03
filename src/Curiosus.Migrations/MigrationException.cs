@@ -5,7 +5,11 @@ namespace Curiosus.Migrations;
 /// <summary>
 /// Exception occured during migration
 /// </summary>
-internal class MigrationException : Exception
+/// <remarks>
+/// Throw it from a custom <see cref="IMigrationConnection"/>, migrations provider or migration to fail the migration with
+/// a specific <see cref="MigrationErrorCode"/>: the engine returns it in <see cref="MigrationResult.ErrorCode"/>.
+/// </remarks>
+public class MigrationException : Exception
 {
     /// <summary>
     /// Code of migration error
@@ -22,11 +26,33 @@ internal class MigrationException : Exception
     /// </summary>
     public string? DatabaseName { get; }
     
-    /// <inheritdoc />
-    public MigrationException(
+    /// <summary>
+    /// Creates an exception that fails the migration with <paramref name="errorCode"/>.
+    /// </summary>
+    /// <param name="errorCode">Code returned in <see cref="MigrationResult.ErrorCode"/>.</param>
+    /// <param name="message">Message returned in <see cref="MigrationResult.ErrorMessage"/>.</param>
+    public MigrationException(MigrationErrorCode errorCode, string message) : base(message)
+    {
+        ErrorCode = errorCode;
+    }
+
+    /// <summary>
+    /// Creates an exception that fails the migration with <paramref name="errorCode"/> because of
+    /// <paramref name="innerException"/>.
+    /// </summary>
+    /// <param name="errorCode">Code returned in <see cref="MigrationResult.ErrorCode"/>.</param>
+    /// <param name="message">Message returned in <see cref="MigrationResult.ErrorMessage"/>.</param>
+    /// <param name="innerException">The exception that caused the failure.</param>
+    public MigrationException(MigrationErrorCode errorCode, string message, Exception? innerException)
+        : base(message, innerException)
+    {
+        ErrorCode = errorCode;
+    }
+
+    internal MigrationException(
         MigrationErrorCode errorCode,
         string message,
-        string? databaseName = null,
+        string? databaseName,
         MigrationInfo? migrationInfo = null) : base(message)
     {
         DatabaseName = databaseName;
@@ -34,13 +60,12 @@ internal class MigrationException : Exception
         MigrationInfo = migrationInfo;
     }
 
-    /// <inheritdoc />
-    public MigrationException(
+    internal MigrationException(
         MigrationErrorCode errorCode,
         string message,
-        Exception inner,
-        string? databaseName = null,
-        MigrationInfo? migrationInfo = null) : base(message, inner)
+        Exception innerException,
+        string? databaseName,
+        MigrationInfo? migrationInfo = null) : base(message, innerException)
     {
         DatabaseName = databaseName;
         ErrorCode = errorCode;

@@ -208,6 +208,23 @@ public sealed class MigrationEngine : IMigrationEngine, IDisposable
 
             return MigrationResult.CreateSuccessful(migrationResult.Applied, migrationResult.Skipped);
         }
+        catch (Exception e) when (GetCancellation(e, cancellationToken) is { } cancellation)
+        {
+            var failedMigration = (e as MigrationException)?.MigrationInfo;
+            var errorMessage = $"Migrating database \"{_migrationConnection.DatabaseName}\" was cancelled";
+            if (failedMigration.HasValue)
+            {
+                errorMessage += $" at migration \"{failedMigration.Value.Version}\"";
+            }
+
+            _logger?.LogWarning(errorMessage);
+
+            return MigrationResult.CreateFailed(
+                MigrationErrorCode.Cancelled,
+                errorMessage,
+                failedMigration,
+                cancellation);
+        }
         catch (MigrationException e)
         {
             _logger?.LogError(
@@ -219,18 +236,37 @@ public sealed class MigrationEngine : IMigrationEngine, IDisposable
             return MigrationResult.CreateFailed(
                 e.ErrorCode,
                 e.Message,
-                e.MigrationInfo);
+                e.MigrationInfo,
+                e);
         }
         catch (Exception e)
         {
-            var errorMessage = $"Unknown error while migrating database \"{_migrationConnection.DatabaseName}\"";
+            var errorMessage = $"Unknown error while migrating database \"{_migrationConnection.DatabaseName}\": {e.Message}";
 
             _logger?.LogError(e, errorMessage);
 
             return MigrationResult.CreateFailed(
                 MigrationErrorCode.UnknownError,
-                errorMessage);
+                errorMessage,
+                null,
+                e);
         }
+    }
+
+    /// <summary>
+    /// Returns the <see cref="OperationCanceledException"/> that <paramref name="exception"/> is or wraps, when the
+    /// migration was cancelled with <paramref name="cancellationToken"/>.
+    /// </summary>
+    private static OperationCanceledException? GetCancellation(Exception exception, CancellationToken cancellationToken)
+    {
+        if (!cancellationToken.IsCancellationRequested) return null;
+
+        for (var current = exception; current != null; current = current.InnerException)
+        {
+            if (current is OperationCanceledException cancellation) return cancellation;
+        }
+
+        return null;
     }
 
     /// <summary>
@@ -368,6 +404,14 @@ public sealed class MigrationEngine : IMigrationEngine, IDisposable
 
                 _logger?.LogInformation(
                     $"Executing pre-migration script \"{migration.Version}\" for database \"{_migrationConnection.DatabaseName}\" completed.");
+            }
+            catch (MigrationException e)
+            {
+                throw new MigrationException(
+                    e.ErrorCode,
+                    $"Error while executing pre-migration to \"{migration.Version}\": {e.Message}",
+                    e,
+                    _migrationConnection.DatabaseName);
             }
             catch (Exception e)
             {

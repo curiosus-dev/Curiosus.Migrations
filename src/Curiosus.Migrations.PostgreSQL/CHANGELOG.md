@@ -4,6 +4,11 @@
 
 ### Fixed
 
+- Error messages of failed operations, including network errors (`NpgsqlException`), include the reason of an
+  unexpected exception (for example
+  `Can not execute non-query SQL: <reason>`), and `MigrationResult.Exception` holds the exception itself. Connection
+  and authorization errors include the PostgreSQL error code and message, so a wrong password can be told from a
+  missing database.
 - Migrations without a comment (`1.sql`, `1.0.up.sql`, code migrations whose `Comment` is `null`) failed with
   "Value cannot be null (Parameter 'migrationName')" when the journal record was saved. A migration with
   `TRANSACTION=OFF` had already run by then, so it ran again on the next start. The journal `name` column is now

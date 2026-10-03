@@ -4,6 +4,8 @@
 
 ### Fixed
 
+- Error messages of failed operations include the reason of an unexpected exception (for example
+  `Can not execute non-query SQL: <reason>`), and `MigrationResult.Exception` holds the exception itself.
 - Migrations running in a transaction (the default) failed with "Can not execute non-query SQL": commands were not
   attached to the transaction, which SqlClient requires. Script migrations, code migrations using the migration
   connection and the journal record now run in the migration transaction.
