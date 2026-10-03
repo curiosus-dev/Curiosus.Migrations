@@ -210,13 +210,19 @@ public sealed class MigrationEngine : IMigrationEngine, IDisposable
         }
         catch (Exception e) when (GetCancellation(e, cancellationToken) is { } cancellation)
         {
+            var failedMigration = (e as MigrationException)?.MigrationInfo;
             var errorMessage = $"Migrating database \"{_migrationConnection.DatabaseName}\" was cancelled";
+            if (failedMigration.HasValue)
+            {
+                errorMessage += $" at migration \"{failedMigration.Value.Version}\"";
+            }
+
             _logger?.LogWarning(errorMessage);
 
             return MigrationResult.CreateFailed(
                 MigrationErrorCode.Cancelled,
                 errorMessage,
-                (e as MigrationException)?.MigrationInfo,
+                failedMigration,
                 cancellation);
         }
         catch (MigrationException e)
@@ -399,10 +405,6 @@ public sealed class MigrationEngine : IMigrationEngine, IDisposable
                 _logger?.LogInformation(
                     $"Executing pre-migration script \"{migration.Version}\" for database \"{_migrationConnection.DatabaseName}\" completed.");
             }
-            catch (OperationCanceledException) when (token.IsCancellationRequested)
-            {
-                throw;
-            }
             catch (MigrationException e)
             {
                 throw new MigrationException(
@@ -533,15 +535,6 @@ public sealed class MigrationEngine : IMigrationEngine, IDisposable
                 currentAppliedMigrations.Add(currentMigration);
                 appliedMigrationVersions.Add(currentMigration.Version);
                 _logger?.LogInformation($"{operationName} to \"{migration.Version}\" (database \"{_migrationConnection.DatabaseName}\") completed.");
-            }
-            catch (OperationCanceledException e) when (cancellationToken.IsCancellationRequested)
-            {
-                throw new MigrationException(
-                    MigrationErrorCode.Cancelled,
-                    $"{operationName} to \"{migration.Version}\" was cancelled",
-                    e,
-                    databaseName,
-                    currentMigration);
             }
             catch (MigrationException e)
             {

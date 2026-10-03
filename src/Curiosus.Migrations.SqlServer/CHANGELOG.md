@@ -4,8 +4,6 @@
 
 ### Fixed
 
-- A command cancelled with the cancellation token is reported as cancellation (`MigrationErrorCode.Cancelled`),
-  not as the "Operation cancelled by user" SQL error.
 - Error messages of failed operations include the reason of an unexpected exception (for example
   `Can not execute non-query SQL: <reason>`), and `MigrationResult.Exception` holds the exception itself.
 - Migrations running in a transaction (the default) failed with "Can not execute non-query SQL": commands were not

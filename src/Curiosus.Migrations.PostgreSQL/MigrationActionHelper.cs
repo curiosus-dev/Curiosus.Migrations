@@ -45,10 +45,6 @@ internal class MigrationActionHelper
         {
             return await action.Invoke(cancellationToken);
         }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-        {
-            throw;
-        }
         catch (MigrationException)
         {
             throw;
@@ -111,7 +107,7 @@ internal class MigrationActionHelper
         {
             return new MigrationException(
                 MigrationErrorCode.ConnectionError,
-                "Can not connect to database",
+                $"Can not connect to database. PostgreSQL Error: {e.SqlState}, Message: {e.Message}",
                 e,
                 _databaseName);
         }
@@ -120,7 +116,7 @@ internal class MigrationActionHelper
         {
             return new MigrationException(
                 MigrationErrorCode.AuthorizationError,
-                "Invalid authorization specification for database",
+                $"Invalid authorization specification for database. PostgreSQL Error: {e.SqlState}, Message: {e.Message}",
                 e,
                 _databaseName);
         }
