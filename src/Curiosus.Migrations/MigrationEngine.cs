@@ -208,6 +208,17 @@ public sealed class MigrationEngine : IMigrationEngine, IDisposable
 
             return MigrationResult.CreateSuccessful(migrationResult.Applied, migrationResult.Skipped);
         }
+        catch (Exception e) when (cancellationToken.IsCancellationRequested)
+        {
+            _logger?.LogWarning($"Migrating database \"{_migrationConnection.DatabaseName}\" was cancelled");
+
+            if (e is OperationCanceledException) throw;
+
+            throw new OperationCanceledException(
+                $"Migrating database \"{_migrationConnection.DatabaseName}\" was cancelled",
+                e,
+                cancellationToken);
+        }
         catch (MigrationException e)
         {
             _logger?.LogError(
@@ -219,17 +230,19 @@ public sealed class MigrationEngine : IMigrationEngine, IDisposable
             return MigrationResult.CreateFailed(
                 e.ErrorCode,
                 e.Message,
+                e,
                 e.MigrationInfo);
         }
         catch (Exception e)
         {
-            var errorMessage = $"Unknown error while migrating database \"{_migrationConnection.DatabaseName}\"";
+            var errorMessage = $"Unknown error while migrating database \"{_migrationConnection.DatabaseName}\": {e.Message}";
 
             _logger?.LogError(e, errorMessage);
 
             return MigrationResult.CreateFailed(
                 MigrationErrorCode.UnknownError,
-                errorMessage);
+                errorMessage,
+                e);
         }
     }
 

@@ -2,7 +2,22 @@
 
 ## [Unreleased]
 
+### Added
+
+- `MigrationException` is public: throw it from a custom connection, migrations provider or migration to fail the
+  migration with a specific `MigrationErrorCode`.
+- `MigrationResult.Exception` holds the exception that failed the migration, and a `MigrationResult.CreateFailed`
+  overload takes it.
+
+### Changed
+
+- Cancelling the token passed to `UpgradeDatabaseAsync`/`DowngradeDatabaseAsync` throws `OperationCanceledException`
+  instead of returning a failed result with `MigratingError` or `UnknownError`. If you handle cancellation through
+  the result, catch `OperationCanceledException` instead.
+
 ### Fixed
+
+- The `UnknownError` result message includes the message of the exception that caused it.
 
 - Script directives written with spaces, as in the documentation (`-- CURIOSUS: TRANSACTION = OFF`), threw
   "Option ... is unknown". Spaces around the option name, `=` and the value are allowed now, and a directive on the

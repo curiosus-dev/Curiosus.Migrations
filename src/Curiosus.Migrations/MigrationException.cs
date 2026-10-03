@@ -5,7 +5,11 @@ namespace Curiosus.Migrations;
 /// <summary>
 /// Exception occured during migration
 /// </summary>
-internal class MigrationException : Exception
+/// <remarks>
+/// Throw it from a custom <see cref="IMigrationConnection"/>, migrations provider or migration to fail the migration with
+/// a specific <see cref="MigrationErrorCode"/>: the engine returns it in <see cref="MigrationResult.ErrorCode"/>.
+/// </remarks>
+public class MigrationException : Exception
 {
     /// <summary>
     /// Code of migration error

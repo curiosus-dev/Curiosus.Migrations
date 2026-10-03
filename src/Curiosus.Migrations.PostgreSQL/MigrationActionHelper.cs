@@ -69,7 +69,7 @@ internal class MigrationActionHelper
         {
             throw new MigrationException(
                 errorCodeType,
-                errorMessage,
+                $"{errorMessage}: {e.Message}",
                 e,
                 _databaseName);
         }
@@ -113,7 +113,7 @@ internal class MigrationActionHelper
         {
             throw new MigrationException(
                 errorCodeType,
-                errorMessage,
+                $"{errorMessage}: {e.Message}",
                 e,
                 _databaseName);
         }
