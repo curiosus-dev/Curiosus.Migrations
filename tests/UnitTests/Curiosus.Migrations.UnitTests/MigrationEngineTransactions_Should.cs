@@ -90,10 +90,10 @@ public class MigrationEngineTransactions_Should
             .Setup(x => x.IsDowngradeTransactionRequired)
             .Returns(isDowngradeTransactional);
         migration
-            .Setup(x => x.UpgradeAsync(It.IsAny<DbTransaction?>(), It.IsAny<CancellationToken>()))
+            .Setup(x => x.UpgradeAsync(It.IsAny<DbTransaction>(), It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
         migration
-            .Setup(x => x.DowngradeAsync(It.IsAny<DbTransaction?>(), It.IsAny<CancellationToken>()))
+            .Setup(x => x.DowngradeAsync(It.IsAny<DbTransaction>(), It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
 
         return migration.Object;
