@@ -37,10 +37,11 @@ public class NormalizeEmailsMigration : MassUpdateCodeMigrationBase, IDowngradeM
 
         var total = await DoMassUpdateAsync(
             query,
-            (processed, totalProcessed) => Logger?.LogInformation($"Normalized {processed} emails, {totalProcessed} in total"),
+            (processed, totalProcessed) =>
+                Logger?.LogInformation("Normalized {Processed} emails, {TotalProcessed} in total", processed, totalProcessed),
             cancellationToken);
 
-        Logger?.LogInformation($"Normalized {total} emails");
+        Logger?.LogInformation("Normalized {Total} emails", total);
     }
 
     public Task DowngradeAsync(DbTransaction? transaction = null, CancellationToken token = default)
