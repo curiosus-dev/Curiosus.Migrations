@@ -36,7 +36,7 @@ public abstract class MassUpdateCodeMigrationBase : CodeMigration
     /// </summary>
     /// <param name="updateQuery">
     /// SQL query to change data. Must contain a CTE with SELECT to get data and UPDATE to change (CTE is for PostgreSQL, use alternatives at your DBMS).
-    /// SELECT must have a LIMIT and a <code>WHERE id >= @id</code> condition so that it can be iterated.
+    /// SELECT must have a LIMIT and a <code>WHERE id > @id</code> condition so that it can be iterated.
     /// UPDATE must return the ID of the changed data. An example request can be seen below in the example section.
     /// </param>
     /// <param name="onStepCompleted">
@@ -95,7 +95,11 @@ public abstract class MassUpdateCodeMigrationBase : CodeMigration
                 {
                     {"id", currentId},
                 };
-                var command = new CommandDefinition(updateQuery, commandParams, cancellationToken: cancellationToken);
+                var command = new CommandDefinition(
+                    updateQuery,
+                    commandParams,
+                    localTransaction,
+                    cancellationToken: cancellationToken);
                 processedIds = await MigrationConnection.Connection.QueryAsync<long>(command);
 
                 localTransaction.Commit();

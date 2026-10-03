@@ -1,5 +1,13 @@
 # Changelog: Curiosus.Migrations.SqlServer
 
+## [Unreleased]
+
+### Fixed
+
+- Migrations running in a transaction (the default) failed with "Can not execute non-query SQL": commands were not
+  attached to the transaction, which SqlClient requires. Script migrations, code migrations using the migration
+  connection and the journal record now run in the migration transaction.
+
 ## [6.0.0] - 2026-09-29
 
 ### Changed

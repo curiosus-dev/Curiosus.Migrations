@@ -1,5 +1,14 @@
 # Changelog: Curiosus.Migrations.Utils
 
+## [Unreleased]
+
+### Fixed
+
+- `MassUpdateCodeMigrationBase.DoMassUpdateAsync` runs each batch in its own transaction on SQL Server too: the batch
+  query wasn't attached to the transaction, which SqlClient requires.
+- The `updateQuery` documentation of `DoMassUpdateAsync` asked for `WHERE id >= @id`, which selects the last
+  processed row again on every step and never ends: the condition is `WHERE id > @id`, as in the example.
+
 ## [6.0.0] - 2026-09-29
 
 ### Changed
