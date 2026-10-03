@@ -155,7 +155,8 @@ await migrationEngine.UpgradeDatabaseAsync();
 ```
 
 An exception thrown from `UpgradeAsync` fails the run: the result has `ErrorCode = MigratingError`, the message and
-the `Exception`. Throw a `MigrationException` to fail with another `MigrationErrorCode`.
+the `Exception`. Throw `new MigrationException(errorCode, message)` (or with an inner exception) to fail with
+another `MigrationErrorCode`.
 
 ## Executing SQL Commands in Code Migrations
 
