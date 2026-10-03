@@ -339,12 +339,12 @@ public class ScriptMigrationsProvider_Should
                 LogLevel.Warning,
                 It.IsAny<EventId>(),
                 It.IsAny<It.IsAnyType>(),
-                It.IsAny<Exception?>(),
-                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+                It.IsAny<Exception>(),
+                It.IsAny<Func<It.IsAnyType, Exception, string>>()),
             times);
     }
 
-    private static IMigration GetSingleMigration(TempScriptsDirectory directory, ILogger? logger = null)
+    private static IMigration GetSingleMigration(TempScriptsDirectory directory, ILogger logger = null)
     {
         var migrationsProvider = new ScriptMigrationsProvider();
         migrationsProvider.FromDirectory(directory.Path);
