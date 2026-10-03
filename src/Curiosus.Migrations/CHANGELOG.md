@@ -1,6 +1,6 @@
 # Changelog: Curiosus.Migrations
 
-## [Unreleased]
+## [6.1.0] - 2026-10-03
 
 ### Added
 

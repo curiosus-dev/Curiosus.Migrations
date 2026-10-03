@@ -1,6 +1,6 @@
 # Changelog: Curiosus.Migrations.PostgreSQL
 
-## [Unreleased]
+## [6.0.1] - 2026-10-03
 
 ### Fixed
 
