@@ -49,25 +49,22 @@ if (isDowngrade)
 
 var engine = builder.Build();
 
-try
-{
-    var result = isDowngrade
-        ? await engine.DowngradeDatabaseAsync(cancellation.Token)
-        : await engine.UpgradeDatabaseAsync(cancellation.Token);
+var result = isDowngrade
+    ? await engine.DowngradeDatabaseAsync(cancellation.Token)
+    : await engine.UpgradeDatabaseAsync(cancellation.Token);
 
-    if (!result.IsSuccessfully)
-    {
-        Console.Error.WriteLine(
-            $"Migration {result.FailedMigration?.Version} failed ({result.ErrorCode}): {result.ErrorMessage}");
-        return 1;
-    }
-
-    Console.WriteLine($"Applied: {String.Join(", ", result.AppliedMigrations.Select(x => x.Version))}");
-    Console.WriteLine($"Skipped by policy: {String.Join(", ", result.SkippedByPolicyMigrations.Select(x => x.Version))}");
-    return 0;
-}
-catch (OperationCanceledException)
+if (result.ErrorCode == MigrationErrorCode.Cancelled)
 {
-    Console.Error.WriteLine("Migration was cancelled");
+    Console.Error.WriteLine($"Migration {result.FailedMigration?.Version} was cancelled");
     return 3;
 }
+
+if (!result.IsSuccessfully)
+{
+    Console.Error.WriteLine($"Migration {result.FailedMigration?.Version} failed ({result.ErrorCode}): {result.ErrorMessage}");
+    return 1;
+}
+
+Console.WriteLine($"Applied: {String.Join(", ", result.AppliedMigrations.Select(x => x.Version))}");
+Console.WriteLine($"Skipped by policy: {String.Join(", ", result.SkippedByPolicyMigrations.Select(x => x.Version))}");
+return 0;

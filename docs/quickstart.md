@@ -186,7 +186,7 @@ namespace YourProject
 ```
 
 Failures are reported through the result: `ErrorCode`, `ErrorMessage`, `FailedMigration` and `Exception`.
-Cancelling the token passed to `UpgradeDatabaseAsync` throws `OperationCanceledException`.
+Cancelling the token passed to `UpgradeDatabaseAsync` returns a failed result with `MigrationErrorCode.Cancelled`.
 
 For SQL Server use `ConfigureForSqlServer` from the `Curiosus.Migrations.SqlServer` namespace instead.
 
