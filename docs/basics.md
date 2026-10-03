@@ -93,7 +93,8 @@ The process concludes by:
 - Logging completion status
 
 Errors are returned in the result, not thrown. Cancelling the token passed to `UpgradeDatabaseAsync` or
-`DowngradeDatabaseAsync` throws `OperationCanceledException`.
+`DowngradeDatabaseAsync` is reported the same way: `ErrorCode` is `MigrationErrorCode.Cancelled` and `Exception` holds
+the `OperationCanceledException`. Migrations applied before the cancellation stay applied.
 
 ## Versioning System
 

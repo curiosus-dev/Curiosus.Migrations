@@ -42,6 +42,15 @@ internal class MigrationActionHelper
         {
             return await func(cancellationToken);
         }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (SqlException sqlEx) when (cancellationToken.IsCancellationRequested)
+        {
+            // SqlClient reports a cancelled command as "Operation cancelled by user" SqlException.
+            throw new OperationCanceledException(sqlEx.Message, sqlEx, cancellationToken);
+        }
         catch (MigrationException)
         {
             throw;
@@ -69,32 +78,21 @@ internal class MigrationActionHelper
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Result of <see cref="func"/>.</returns>
     /// <exception cref="MigrationException">If <see cref="func"/> throw exception.</exception>
-    internal async Task TryExecuteAsync(
+    internal Task TryExecuteAsync(
         Func<CancellationToken, Task> func,
         MigrationErrorCode errorCode,
         string errorMessage,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            await func(cancellationToken);
-        }
-        catch (MigrationException)
-        {
-            throw;
-        }
-        catch (SqlException sqlEx)
-        {
-            throw CreateMigrationExceptionFromSqlException(sqlEx, errorCode, errorMessage);
-        }
-        catch (Exception e)
-        {
-            throw new MigrationException(
-                errorCode,
-                $"{errorMessage}: {e.Message}",
-                e,
-                _databaseName);
-        }
+        return TryExecuteAsync(
+            async ct =>
+            {
+                await func(ct);
+                return true;
+            },
+            errorCode,
+            errorMessage,
+            cancellationToken);
     }
 
     /// <summary>
