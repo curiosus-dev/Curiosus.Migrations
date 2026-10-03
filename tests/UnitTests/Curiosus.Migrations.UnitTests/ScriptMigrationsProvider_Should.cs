@@ -174,4 +174,114 @@ public class ScriptMigrationsProvider_Should
         migrations[2].IsLongRunning.Should().BeFalse();
         migrations[2].Dependencies.Should().BeEmpty();
     }
+
+    [Theory]
+    [InlineData("--CURIOSUS:TRANSACTION=OFF\nSELECT 1;")]
+    [InlineData("-- CURIOSUS: TRANSACTION = OFF\nSELECT 1;")]
+    [InlineData("-- curiosus:  transaction  =  off  \r\nSELECT 1;")]
+    [InlineData("SELECT 1;\n-- CURIOSUS: TRANSACTION = OFF")]
+    [InlineData("-- CURIOSITY: TRANSACTION = OFF;\nSELECT 1;")]
+    public void GetMigrations_ScriptDirectives_AcceptSpacesCaseAndLastLine(string script)
+    {
+        using var directory = new TempScriptsDirectory();
+        directory.Write("1.sql", script);
+
+        var migration = GetSingleMigration(directory);
+
+        migration.IsTransactionRequired.Should().BeFalse();
+    }
+
+    [Fact]
+    public void GetMigrations_ScriptDirectives_SpacedFormSetsAllOptions()
+    {
+        using var directory = new TempScriptsDirectory();
+        directory.Write(
+            "2.sql",
+            "-- CURIOSUS: LONG-RUNNING = TRUE\n-- CURIOSUS: DEPENDENCIES = 0.1, 1\nSELECT 1;");
+
+        var migration = GetSingleMigration(directory);
+
+        migration.IsLongRunning.Should().BeTrue();
+        migration.Dependencies.Should().Equal(new MigrationVersion(0, 1), new MigrationVersion(1));
+    }
+
+    [Fact]
+    public void GetMigrations_UnknownDirective_Throws()
+    {
+        using var directory = new TempScriptsDirectory();
+        directory.Write("1.sql", "-- CURIOSUS: UNKNOWN = 1\nSELECT 1;");
+
+        var act = () => GetSingleMigration(directory);
+
+        act.Should().Throw<InvalidOperationException>().WithMessage("*\"UNKNOWN\" is unknown*");
+    }
+
+    [Fact]
+    public void GetMigrations_UpAndDownScripts_UpScriptDirectivesAndCommentApply()
+    {
+        using var directory = new TempScriptsDirectory();
+        directory.Write("1.up-create_index.sql", "-- CURIOSUS: TRANSACTION = OFF\nCREATE INDEX CONCURRENTLY ix ON t (c);");
+        directory.Write("1.down-drop_index.sql", "DROP INDEX ix;");
+        var logger = new Mock<ILogger>();
+
+        var migration = GetSingleMigration(directory, logger.Object);
+
+        migration.IsTransactionRequired.Should().BeFalse();
+        migration.Comment.Should().Be("create_index");
+        logger.Verify(
+            x => x.Log(
+                LogLevel.Warning,
+                It.IsAny<EventId>(),
+                It.IsAny<It.IsAnyType>(),
+                It.IsAny<Exception?>(),
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public void GetMigrations_OnlyDownScriptHasComment_CommentIsTakenFromIt()
+    {
+        using var directory = new TempScriptsDirectory();
+        directory.Write("1.up.sql", "SELECT 1;");
+        directory.Write("1.down-comment.sql", "SELECT 2;");
+
+        var migration = GetSingleMigration(directory);
+
+        migration.Comment.Should().Be("comment");
+        migration.IsTransactionRequired.Should().BeTrue();
+    }
+
+    private static IMigration GetSingleMigration(TempScriptsDirectory directory, ILogger? logger = null)
+    {
+        var migrationsProvider = new ScriptMigrationsProvider();
+        migrationsProvider.FromDirectory(directory.Path);
+
+        return migrationsProvider
+            .GetMigrations(Mock.Of<IMigrationConnection>(), new Dictionary<string, string>(), logger ?? Mock.Of<ILogger>())
+            .Should()
+            .ContainSingle()
+            .Subject;
+    }
+
+    private sealed class TempScriptsDirectory : IDisposable
+    {
+        public string Path { get; } = System.IO.Path.Combine(
+            System.IO.Path.GetTempPath(),
+            $"curiosus_scripts_{Guid.NewGuid():N}");
+
+        public TempScriptsDirectory()
+        {
+            Directory.CreateDirectory(Path);
+        }
+
+        public void Write(string fileName, string script)
+        {
+            File.WriteAllText(System.IO.Path.Combine(Path, fileName), script);
+        }
+
+        public void Dispose()
+        {
+            Directory.Delete(Path, recursive: true);
+        }
+    }
 }

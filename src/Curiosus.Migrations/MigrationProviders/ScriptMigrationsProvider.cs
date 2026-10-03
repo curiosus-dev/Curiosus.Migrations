@@ -98,6 +98,7 @@ public class ScriptMigrationsProvider : IMigrationsProvider
                 throw new ArgumentException($"Directory \"{directoryPath}\" does not exists");
 
             var fileNames = Directory.GetFiles(directoryPath);
+            Array.Sort(fileNames, StringComparer.Ordinal);
 
             var directoryMigrations = GetMigrations(
                 fileNames,
@@ -119,6 +120,7 @@ public class ScriptMigrationsProvider : IMigrationsProvider
             var scriptParsingOptions = keyValuePair.Value;
 
             var resourceFileNames = assembly.GetManifestResourceNames();
+            Array.Sort(resourceFileNames, StringComparer.Ordinal);
 
             var assemblyMigrations = GetMigrations(
                 resourceFileNames,
@@ -213,9 +215,7 @@ public class ScriptMigrationsProvider : IMigrationsProvider
                 }
 
                 var script = sqlScriptReadFunc.Invoke(fileName);
-
-                // extract options for current migration
-                scriptInfo.Options = ExtractMigrationOptions(script);
+                var options = ExtractMigrationOptions(script);
 
                 // split into batches
                 var batches = new List<ScriptMigrationBatch>();
@@ -241,6 +241,8 @@ public class ScriptMigrationsProvider : IMigrationsProvider
                             $"There is more than one downgrade script with version {version}");
 
                     scriptInfo.DownScript.AddRange(batches);
+                    scriptInfo.DownOptions = options;
+                    scriptInfo.DownComment = GetComment(match);
                 }
                 else
                 {
@@ -249,12 +251,9 @@ public class ScriptMigrationsProvider : IMigrationsProvider
                             $"There is more than one upgrade script with version {version}");
 
                     scriptInfo.UpScript.AddRange(batches);
+                    scriptInfo.UpOptions = options;
+                    scriptInfo.UpComment = GetComment(match);
                 }
-
-                var comment = match.Groups[9];
-                scriptInfo.Comment = comment.Success
-                    ? comment.Value
-                    : null;
             }
             else
             {
@@ -273,6 +272,15 @@ public class ScriptMigrationsProvider : IMigrationsProvider
             .ToArray();
     }
 
+    private static string? GetComment(Match fileNameMatch)
+    {
+        var comment = fileNameMatch.Groups[9];
+
+        return comment.Success
+            ? comment.Value
+            : null;
+    }
+
     private MigrationOptions ExtractMigrationOptions(string sourceScript)
     {
         Guard.AssertNotEmpty(sourceScript, nameof(sourceScript));
@@ -280,7 +288,7 @@ public class ScriptMigrationsProvider : IMigrationsProvider
         var options = new MigrationOptions();
 
         // CURIOSITY is the prefix of the package before it was renamed to Curiosus, existing scripts still use it.
-        var optionsRegex = new Regex(@"--\s*(?:CURIOSUS|CURIOSITY):\s*(.*)\s*=\s*(.*)\s*\n", RegexOptions.IgnoreCase);
+        var optionsRegex = new Regex(@"--\s*(?:CURIOSUS|CURIOSITY):\s*([^\s=]+)\s*=\s*(.*?)\s*(?:\n|$)", RegexOptions.IgnoreCase);
         foreach (var line in Regex.Split(sourceScript, @"(?=--\s*(?:CURIOSUS|CURIOSITY):)"))
         {
             if (String.IsNullOrWhiteSpace(line)) continue;
@@ -364,6 +372,19 @@ public class ScriptMigrationsProvider : IMigrationsProvider
         var upScript = migrationScriptInfo.UpScript;
         var downScript = migrationScriptInfo.DownScript;
 
+        // A migration has one set of options for both directions: the upgrade script declares them.
+        var options = migrationScriptInfo.UpOptions ?? migrationScriptInfo.DownOptions ?? new MigrationOptions();
+        if (migrationScriptInfo.UpOptions != null
+            && migrationScriptInfo.DownOptions != null
+            && !migrationScriptInfo.UpOptions.Equals(migrationScriptInfo.DownOptions))
+        {
+            migrationLogger?.LogWarning(
+                $"Directives of the downgrade script of migration {migrationVersion} differ from the upgrade script ones " +
+                "and are ignored: the upgrade script directives apply to both directions");
+        }
+
+        var comment = migrationScriptInfo.UpComment ?? migrationScriptInfo.DownComment;
+
         foreach (var keyValuePair in variables)
         {
             foreach (var batch in upScript)
@@ -384,19 +405,19 @@ public class ScriptMigrationsProvider : IMigrationsProvider
                 migrationVersion,
                 upScript,
                 downScript,
-                migrationScriptInfo.Comment,
-                migrationScriptInfo.Options.IsTransactionRequired,
-                migrationScriptInfo.Options.IsLongRunning,
-                migrationScriptInfo.Options.Dependencies)
+                comment,
+                options.IsTransactionRequired,
+                options.IsLongRunning,
+                options.Dependencies)
             : new ScriptMigration(
                 migrationLogger,
                 migrationConnection,
                 migrationVersion,
                 upScript,
-                migrationScriptInfo.Comment,
-                migrationScriptInfo.Options.IsTransactionRequired,
-                migrationScriptInfo.Options.IsLongRunning,
-                migrationScriptInfo.Options.Dependencies);
+                comment,
+                options.IsTransactionRequired,
+                options.IsLongRunning,
+                options.Dependencies);
     }
 
     private struct ScriptParsingOptions
@@ -422,20 +443,36 @@ public class ScriptMigrationsProvider : IMigrationsProvider
     /// </summary>
     private class MigrationScriptInfo
     {
-        public string? Comment { get; set; }
+        public string? UpComment { get; set; }
+
+        public string? DownComment { get; set; }
 
         public List<ScriptMigrationBatch> UpScript { get; } = new();
 
         public List<ScriptMigrationBatch> DownScript { get; } = new();
 
-        public MigrationOptions Options { get; set; } = null!;
+        public MigrationOptions? UpOptions { get; set; }
+
+        public MigrationOptions? DownOptions { get; set; }
     }
 
-    private class MigrationOptions
+    private class MigrationOptions : IEquatable<MigrationOptions>
     {
         public bool IsTransactionRequired { get; set; } = true;
 
         public bool IsLongRunning { get; set; }
         public List<MigrationVersion> Dependencies { get; set; } = new();
+
+        public bool Equals(MigrationOptions? other)
+        {
+            return other != null
+                   && IsTransactionRequired == other.IsTransactionRequired
+                   && IsLongRunning == other.IsLongRunning
+                   && Dependencies.SequenceEqual(other.Dependencies);
+        }
+
+        public override bool Equals(object? obj) => Equals(obj as MigrationOptions);
+
+        public override int GetHashCode() => HashCode.Combine(IsTransactionRequired, IsLongRunning, Dependencies.Count);
     }
 }

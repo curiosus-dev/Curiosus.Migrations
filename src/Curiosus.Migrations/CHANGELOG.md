@@ -1,5 +1,17 @@
 # Changelog: Curiosus.Migrations
 
+## [Unreleased]
+
+### Fixed
+
+- Script directives written with spaces, as in the documentation (`-- CURIOSUS: TRANSACTION = OFF`), threw
+  "Option ... is unknown". Spaces around the option name, `=` and the value are allowed now, and a directive on the
+  last line of a script without a line break is no longer ignored.
+- A migration with both `.up.sql` and `.down.sql` scripts took its directives and comment from whichever file was
+  read last, which depends on the file system. The upgrade script directives and comment apply to both directions
+  now (the comment of the downgrade script is used when the upgrade script has none), and a warning is logged when
+  the downgrade script declares different directives. Script files are read in ordinal name order.
+
 ## [6.0.0] - 2026-09-29
 
 ### Changed
