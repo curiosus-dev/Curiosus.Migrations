@@ -4,6 +4,8 @@
 
 ### Fixed
 
+- `%DBNAME%` was replaced with the maintenance database name (`postgres`) instead of the database from the
+  connection string.
 - Error messages of failed operations, including network errors (`NpgsqlException`), include the reason of an
   unexpected exception (for example
   `Can not execute non-query SQL: <reason>`), and `MigrationResult.Exception` holds the exception itself. Connection

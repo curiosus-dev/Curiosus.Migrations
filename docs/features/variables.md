@@ -93,6 +93,4 @@ public class MyCodeMigration : CodeMigration
 All providers by default provide next variables:
  
  - `%USER%` (`DefaultVariables.User`) - name of user from connection string (`unknown` for SQL Server integrated security)
- - `%DBNAME%` (`DefaultVariables.DbName`) - database name. The PostgreSQL provider currently sets it to the
-   maintenance database (`postgres`) instead of the database from the connection string: register the name with
-   `UseVariable("%DBNAME%", ...)` if your scripts need it.
+ - `%DBNAME%` (`DefaultVariables.DbName`) - name of the database from the connection string
