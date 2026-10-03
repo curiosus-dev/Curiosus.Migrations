@@ -4,7 +4,8 @@ using Xunit;
 
 namespace Curiosus.Migrations.SqlServer.IntegrationTests.EngineTests;
 
-public class SqlServerEngineTests(SqlServerContainerFixture containerFixture) : EngineTestsBase, IClassFixture<SqlServerContainerFixture>
+public class SqlServerEngineTests(SqlServerContainerFixture containerFixture)
+    : EngineTestsBase, IClassFixture<SqlServerContainerFixture>
 {
     protected override string GetConnectionString(string database) => containerFixture.GetConnectionString(database);
 

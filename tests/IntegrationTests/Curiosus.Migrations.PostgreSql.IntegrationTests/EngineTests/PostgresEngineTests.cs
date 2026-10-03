@@ -5,7 +5,8 @@ using Xunit;
 
 namespace Curiosus.Migrations.PostgreSql.IntegrationTests.EngineTests;
 
-public class PostgresEngineTests(PostgresContainerFixture containerFixture) : EngineTestsBase, IClassFixture<PostgresContainerFixture>
+public class PostgresEngineTests(PostgresContainerFixture containerFixture)
+    : EngineTestsBase, IClassFixture<PostgresContainerFixture>
 {
     protected override string GetConnectionString(string database) => containerFixture.GetConnectionString(database);
 
